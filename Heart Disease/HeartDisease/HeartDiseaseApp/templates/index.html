@@ -1,67 +1,182 @@
-{% load static %}
-<html>
-<head>
-<title>Heart Disease Prediction</title>
-<meta http-equiv="content-type" content="text/html; charset=utf-8" />
-<link rel="stylesheet" type="text/css" href="{% static 'style.css' %}"/>
-</head>
-<body>
-<div id="wrapper">
-	<div id="header">
-		<div id="logo">
-			<center><font size="4" color="yellow">Design And Implementing Heart Disease Prediction
-Using Naives Bayesian</font></center>
-		</div>
-		<div id="slogan">
-			
-		</div>
-	</div>
-	<div id="menu">
-		<ul><center>
-	  <li><a href="{% url 'index' %}">Home</a></li>
-      <li><a href="{% url 'Login' %}">Login</a></li>
-      <li><a href="{% url 'Register' %}">Register Here</a></li>
-			
-		</center></ul>
-		<br class="clearfix" />
-	</div>
-	<div id="splash">
-		<img class="pic" src="{% static 'images/investor.jpg' %}" width="870" height="230" alt="" />
-	</div>
-	<br/>
-	<p align="justify"><font size="3" style="font-family: Comic Sans MS" color='black'>
-		Abstract-Data mining, a great developing technique that
-revolves around exploring and digging out significant information
-from massive collection of data which can be further beneficial in
-examining and drawing out patterns for making business related
-decisions. Talking about the Medical domain, implementation of
-data mining in this field can yield in discovering and withdrawing
-valuable patterns and information which can prove beneficial in
-performing clinical diagnosis. The research focuses on heart
-disease diagnosis by considering previous data and information.
-To achieve this SHDP (Smart Heart Disease Prediction) is built via
-Navies Bayesian in order to predict risk factors concerning heart
-disease.</p><p align="justify"><font size="3" style="font-family: Comic Sans MS" color='black'>The speedy advancement of technology has led to
-remarkable rise in mobile health technology that being one of the
-web application. The required data is assembled in a standardized
-form. For predicting the chances of heart disease in a patient, the
-following attributes are being fetched from the medical profiles,
-these include: age, BP, cholesterol, sex, blood sugar etc... The
-collected attributes acts as input for the Navies Bayesian
-classification for predicting heart disease. The dataset utilized is
-split into two sections, 80% dataset is utilized for training and rest
-20% is utilized for testing.</p><p align="justify"><font size="3" style="font-family: Comic Sans MS" color='black'> The proposed approach includes
-following stages: dataset collection, user registration and login
-(Application based), classification via Navies Bayesian, prediction
-and secure data transfer by employing AES (Advanced
-Encryption Standard). Thereafter result is produced. The
-research elaborates and presents multiple knowledge abstraction
-techniques by making use of data mining methods which are
-adopted for heart disease prediction. The output reveals that the
-established diagnostic system effectively assists in predicting risk
-factors concerning heart diseases.
+{% extends 'base.html' %}
+{% block title %}Home{% endblock %}
 
-</p>
-<br/><br/><br/><br/><br/><br/><br/><br/>
-</body>
-</html>
+{% block extra_css %}
+<style>
+  /* Hero */
+  .hero-wrap {
+    margin-bottom: 1.75rem;
+  }
+  .hero-glass {
+    background: var(--glass);
+    backdrop-filter: var(--blur); -webkit-backdrop-filter: var(--blur);
+    border: 1px solid var(--glass-border);
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-lg);
+    padding: 3rem 2.75rem;
+    position: relative; overflow: hidden;
+    transition: transform var(--t), box-shadow var(--t);
+  }
+  .hero-glass:hover { transform: translateY(-4px); box-shadow: var(--shadow-hover); }
+  .hero-glass::before {
+    content: '';
+    position: absolute; top: 0; left: 0; right: 0; height: 3px;
+    background: linear-gradient(90deg, #0ea5e9, #0071e3, #a855f7);
+  }
+  .hero-badge {
+    display: inline-flex; align-items: center; gap: .45rem;
+    background: rgba(0,113,227,.08); border: 1px solid rgba(0,113,227,.18);
+    color: var(--primary); font-size: .72rem; font-weight: 700;
+    padding: .3rem .9rem; border-radius: 99px;
+    text-transform: uppercase; letter-spacing: .8px; margin-bottom: 1.1rem;
+  }
+  .hero-title { font-size: 2.2rem; font-weight: 700; letter-spacing: -.5px; line-height: 1.18; color: var(--text); margin-bottom: .85rem; }
+  .hero-title span { color: var(--primary); }
+  .hero-desc { font-size: .97rem; color: var(--text-muted); line-height: 1.78; max-width: 480px; margin-bottom: 2rem; }
+  .hero-actions { display: flex; gap: .75rem; flex-wrap: wrap; }
+
+  /* Nav cards */
+  .nav-cards { display: grid; grid-template-columns: repeat(3,1fr); gap: 1.15rem; margin-bottom: 1.75rem; }
+  @media (max-width: 700px) { .nav-cards { grid-template-columns: 1fr; } }
+  .nav-card {
+    background: var(--glass); backdrop-filter: var(--blur); -webkit-backdrop-filter: var(--blur);
+    border: 1px solid var(--glass-border); border-radius: var(--radius);
+    padding: 1.6rem 1.4rem 1.45rem; text-decoration: none; color: var(--text);
+    display: flex; flex-direction: column; align-items: flex-start; gap: .55rem;
+    box-shadow: var(--shadow-md);
+    transition: box-shadow var(--t-spring), transform var(--t-spring), border-color var(--t);
+  }
+  .nav-card:hover { box-shadow: var(--shadow-hover); transform: translateY(-6px) scale(1.015); border-color: rgba(77,168,255,.30); }
+  .nav-card:active { transform: translateY(-1px) scale(1); }
+  .nav-card-icon {
+    width: 44px; height: 44px;
+    background: linear-gradient(145deg,rgba(0,113,227,.10),rgba(0,113,227,.18));
+    border-radius: 11px; display: flex; align-items: center; justify-content: center;
+    color: var(--primary);
+    box-shadow: 0 2px 8px rgba(0,113,227,.15), 0 1px 0 rgba(255,255,255,.8) inset;
+  }
+  .nav-card-icon svg { width: 20px; height: 20px; }
+  .nav-card h3 { font-size: .93rem; font-weight: 700; }
+  .nav-card p  { font-size: .81rem; color: var(--text-muted); line-height: 1.6; }
+  .nav-card .card-arrow {
+    margin-top: .3rem; font-size: .79rem; font-weight: 700; color: var(--primary);
+    display: flex; align-items: center; gap: .3rem; transition: gap var(--t);
+  }
+  .nav-card:hover .card-arrow { gap: .55rem; }
+
+  /* Stats */
+  .stats { display: grid; grid-template-columns: repeat(4,1fr); gap: 1.1rem; margin-bottom: 1.75rem; }
+  @media (max-width: 700px) { .stats { grid-template-columns: repeat(2,1fr); } }
+  .stat {
+    background: var(--glass); backdrop-filter: var(--blur); -webkit-backdrop-filter: var(--blur);
+    border: 1px solid var(--glass-border); border-radius: var(--radius);
+    box-shadow: var(--shadow-md); padding: 1.2rem 1rem; text-align: center;
+    transition: transform var(--t-spring), box-shadow var(--t);
+  }
+  .stat:hover { transform: translateY(-4px) scale(1.03); box-shadow: var(--shadow-hover); }
+  .stat .num { font-size: 1.65rem; font-weight: 700; color: var(--primary); letter-spacing: -.4px; }
+  .stat .lbl { font-size: .75rem; color: var(--text-muted); margin-top: .12rem; }
+
+  /* About */
+  .about-glass {
+    background: var(--glass); backdrop-filter: var(--blur); -webkit-backdrop-filter: var(--blur);
+    border: 1px solid var(--glass-border); border-radius: var(--radius);
+    box-shadow: var(--shadow-md); padding: 1.75rem 1.9rem;
+    transition: transform var(--t), box-shadow var(--t);
+  }
+  .about-glass:hover { transform: translateY(-3px); box-shadow: var(--shadow-hover); }
+  .about-glass h2 { font-size: .93rem; font-weight: 700; color: var(--text); margin-bottom: .9rem; padding-bottom: .8rem; border-bottom: 1px solid rgba(255,255,255,.08); display: flex; align-items: center; gap: .5rem; }
+  .about-glass h2 svg { width: 16px; height: 16px; color: var(--primary); }
+  .about-glass p { font-size: .875rem; color: var(--text-muted); line-height: 1.82; margin-bottom: .75rem; }
+  .about-glass p:last-child { margin-bottom: 0; }
+  .disclaimer-badge { margin-top: 1.1rem; padding: .7rem 1.1rem; background: rgba(255,180,30,.10); border: 1px solid rgba(255,180,30,.25); border-radius: var(--radius-sm); font-size: .79rem; color: rgba(255,200,80,.90); display: flex; align-items: flex-start; gap: .55rem; }
+  .disclaimer-badge svg { width: 14px; height: 14px; flex-shrink: 0; margin-top: .1rem; }
+</style>
+{% endblock %}
+
+{% block content %}
+
+<div class="hero-wrap">
+  <div class="hero-glass reveal">
+    <span class="hero-badge">
+      <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+        <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/>
+      </svg>
+      Clinical Decision Support
+    </span>
+    <h1 class="hero-title">Predict <span>Heart Disease</span><br/>with Machine Learning</h1>
+    <p class="hero-desc">An evidence-based cardiovascular screening tool powered by Naïve Bayesian and SVM classifiers — designed for healthcare researchers, students, and medical educators.</p>
+    <div class="hero-actions">
+      <a href="{% url 'Register' %}" class="btn btn-primary btn-lg">
+        <span class="btn-text"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="8.5" cy="7" r="4"/><line x1="20" y1="8" x2="20" y2="14"/><line x1="23" y1="11" x2="17" y2="11"/></svg> Create Account</span>
+        <span class="btn-spinner"><span class="spinner-ring"></span> Loading…</span>
+      </a>
+      <a href="{% url 'Login' %}" class="btn btn-ghost btn-lg">
+        <span class="btn-text">Sign In</span>
+        <span class="btn-spinner"><span class="spinner-ring"></span></span>
+      </a>
+    </div>
+  </div>
+
+
+</div>
+
+<!-- Navigation Cards -->
+<div class="nav-cards">
+  <a href="{% url 'Register' %}" class="nav-card reveal">
+    <div class="nav-card-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg></div>
+    <h3>Register</h3><p>Create an account to access the heart disease screening tool.</p>
+    <span class="card-arrow">Get started <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" width="12" height="12"><path d="M5 12h14M12 5l7 7-7 7"/></svg></span>
+  </a>
+  <a href="{% url 'Login' %}" class="nav-card reveal" data-delay="100">
+    <div class="nav-card-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg></div>
+    <h3>Login</h3><p>Returning users can sign in and run an instant risk assessment.</p>
+    <span class="card-arrow">Sign in <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" width="12" height="12"><path d="M5 12h14M12 5l7 7-7 7"/></svg></span>
+  </a>
+  <a href="{% url 'Login' %}" class="nav-card reveal" data-delay="200">
+    <div class="nav-card-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg></div>
+    <h3>Run Prediction</h3><p>Enter 13 clinical parameters for an instant cardiovascular risk assessment.</p>
+    <span class="card-arrow">Start prediction <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" width="12" height="12"><path d="M5 12h14M12 5l7 7-7 7"/></svg></span>
+  </a>
+</div>
+
+<!-- Stats -->
+<div class="stats">
+  <div class="stat reveal">          <div class="num" data-count="303">0</div><div class="lbl">Patient Records</div></div>
+  <div class="stat reveal" data-delay="100"><div class="num" data-count="13">0</div> <div class="lbl">Clinical Features</div></div>
+  <div class="stat reveal" data-delay="200"><div class="num" data-count="2">0</div>  <div class="lbl">ML Algorithms</div></div>
+  <div class="stat reveal" data-delay="300"><div class="num">~85%</div>              <div class="lbl">Prediction Accuracy</div></div>
+</div>
+
+<!-- About -->
+<div class="about-glass reveal">
+  <h2>
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4M12 8h.01"/></svg>
+    About VitaHeart
+  </h2>
+  <p>VitaHeart uses <strong>Naïve Bayesian</strong> and <strong>SVM</strong> classifiers trained on the UCI Heart Disease dataset to predict the likelihood of cardiovascular disease from 13 clinical attributes: age, sex, chest pain type, resting blood pressure, serum cholesterol, fasting blood sugar, resting ECG results, maximum heart rate, exercise-induced angina, ST depression (oldpeak), slope of ST segment, number of major vessels, and thalassemia status.</p>
+  <p>The dataset (303 records) is split 80/20 for training and testing. After authentication, patients enter their clinical parameters and receive an immediate binary prediction — presence or absence of heart disease — along with a model accuracy comparison chart.</p>
+  <div class="disclaimer-badge">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+    For <strong>educational and research purposes only</strong>. Does not constitute medical advice.
+  </div>
+</div>
+
+{% endblock %}
+
+{% block extra_js %}
+<script>
+/* ── Count-up ── */
+const cEls = document.querySelectorAll('.num[data-count]');
+const cObs = new IntersectionObserver(en => {
+  en.forEach(e => {
+    if (!e.isIntersecting) return;
+    const el = e.target, end = parseInt(el.dataset.count);
+    let cur = 0; const step = Math.ceil(end / 45);
+    const t = setInterval(() => { cur = Math.min(cur+step,end); el.textContent=cur; if(cur>=end) clearInterval(t); }, 25);
+    cObs.unobserve(el);
+  });
+}, { threshold: 0.5 });
+cEls.forEach(el => cObs.observe(el));
+</script>
+{% endblock %}

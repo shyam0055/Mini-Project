@@ -1,0 +1,914 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>3D Heart Viewer | VitaHeart</title>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html,body{width:100%;height:100%;overflow:hidden;background:#060208;
+  font-family:-apple-system,BlinkMacSystemFont,'SF Pro Display','Helvetica Neue',sans-serif;color:#fff}
+canvas{display:block;position:fixed;top:0;left:0;width:100%;height:100%}
+
+/* Loading */
+#loading{position:fixed;inset:0;background:#060208;display:flex;flex-direction:column;
+  align-items:center;justify-content:center;z-index:200;transition:opacity .9s ease}
+#loading.out{opacity:0;pointer-events:none}
+.ld-ring{width:56px;height:56px;border-radius:50%;
+  border:3px solid rgba(210,20,40,.25);border-top-color:#d21428;
+  animation:spin 1s linear infinite;margin-bottom:1.4rem}
+.ld-ring2{position:absolute;width:42px;height:42px;border-radius:50%;
+  border:2px solid rgba(210,20,40,.15);border-bottom-color:#ff4060;
+  animation:spin .7s linear infinite reverse;top:7px;left:7px}
+.ld-wrap{position:relative}
+.ld-label{font-size:.88rem;font-weight:700;letter-spacing:1.2px;
+  text-transform:uppercase;color:rgba(255,255,255,.55)}
+.ld-sub{font-size:.7rem;color:rgba(255,255,255,.22);margin-top:.35rem;letter-spacing:.6px}
+.ld-bar{width:200px;height:2px;background:rgba(255,255,255,.06);
+  border-radius:1px;margin-top:1.6rem;overflow:hidden}
+.ld-fill{height:100%;background:linear-gradient(90deg,#d21428,#ff4060);
+  border-radius:1px;width:0;transition:width .3s ease}
+@keyframes spin{to{transform:rotate(360deg)}}
+
+/* Top bar */
+#topbar{position:fixed;top:0;left:0;right:0;height:52px;display:flex;
+  align-items:center;justify-content:space-between;padding:0 1.4rem;
+  background:rgba(6,2,8,.78);backdrop-filter:blur(28px) saturate(160%);
+  -webkit-backdrop-filter:blur(28px) saturate(160%);
+  border-bottom:1px solid rgba(255,255,255,.055);z-index:10}
+.topbar-brand{display:flex;align-items:center;gap:.6rem;
+  font-size:.82rem;font-weight:700;letter-spacing:.5px}
+.hb-dot{width:8px;height:8px;border-radius:50%;background:#d21428;
+  box-shadow:0 0 10px #d21428,0 0 20px rgba(210,20,40,.4);
+  animation:pulse-dot 1s ease-in-out infinite}
+@keyframes pulse-dot{0%,100%{transform:scale(1);opacity:1}50%{transform:scale(.75);opacity:.55}}
+.bpm-badge{font-size:.7rem;font-weight:700;padding:.22rem .65rem;
+  border-radius:20px;background:rgba(210,20,40,.15);
+  border:1px solid rgba(210,20,40,.3);color:rgba(255,140,140,.9);
+  letter-spacing:.4px;margin-left:.4rem}
+.back-btn{display:flex;align-items:center;gap:.4rem;font-size:.78rem;
+  font-weight:600;color:rgba(255,255,255,.55);text-decoration:none;
+  padding:.32rem .8rem;border-radius:8px;
+  border:1px solid rgba(255,255,255,.08);
+  background:rgba(255,255,255,.03);transition:all .2s}
+.back-btn:hover{color:#fff;background:rgba(255,255,255,.09);
+  border-color:rgba(255,255,255,.16)}
+.back-btn svg{width:13px;height:13px}
+
+/* Camera presets */
+#presets{position:fixed;bottom:1.5rem;left:50%;transform:translateX(-50%);
+  display:flex;gap:.4rem;z-index:10;flex-wrap:wrap;justify-content:center}
+.pr-btn{padding:.4rem .9rem;border-radius:20px;font-size:.72rem;font-weight:700;
+  letter-spacing:.4px;cursor:pointer;transition:all .25s;
+  border:1px solid rgba(255,255,255,.1);
+  background:rgba(255,255,255,.055);color:rgba(255,255,255,.6)}
+.pr-btn:hover,.pr-btn.on{background:rgba(210,20,40,.22);
+  border-color:rgba(210,20,40,.45);color:#fff;
+  box-shadow:0 2px 12px rgba(210,20,40,.2)}
+
+/* Hint bar */
+#hints{position:fixed;bottom:5rem;left:50%;transform:translateX(-50%);
+  display:flex;gap:1.4rem;z-index:10;pointer-events:none;
+  opacity:.55;transition:opacity 1s}
+#hints.hide{opacity:0}
+.hint{display:flex;align-items:center;gap:.4rem;font-size:.68rem;
+  color:rgba(255,255,255,.7)}
+.hint-key{width:30px;height:22px;border-radius:5px;
+  background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.14);
+  display:flex;align-items:center;justify-content:center;font-size:.6rem}
+
+/* Side info panel */
+#sideinfo{position:fixed;right:1.4rem;top:50%;
+  transform:translateY(-50%);width:198px;z-index:10;pointer-events:none}
+.si-card{background:rgba(6,2,8,.72);backdrop-filter:blur(20px);
+  border:1px solid rgba(255,255,255,.065);border-radius:10px;
+  padding:.8rem 1rem;margin-bottom:.5rem;
+  transform:translateX(16px);opacity:0;transition:all .5s ease}
+.si-card.show{transform:translateX(0);opacity:1}
+.si-label{font-size:.62rem;font-weight:800;text-transform:uppercase;
+  letter-spacing:1.1px;color:#d21428;margin-bottom:.25rem}
+.si-val{font-size:.8rem;color:rgba(255,255,255,.7);line-height:1.55}
+.si-bar{height:3px;border-radius:2px;background:rgba(255,255,255,.07);
+  margin-top:.5rem;overflow:hidden}
+.si-bar-fill{height:100%;border-radius:2px;
+  background:linear-gradient(90deg,#d21428,#ff6060);width:60%}
+
+/* Anatomy labels */
+.alabel{position:fixed;pointer-events:none;z-index:12;
+  background:rgba(6,2,8,.82);backdrop-filter:blur(10px);
+  border:1px solid rgba(210,20,40,.35);border-radius:6px;
+  padding:.22rem .6rem;font-size:.65rem;font-weight:700;
+  color:rgba(255,190,190,.95);letter-spacing:.3px;
+  opacity:0;transition:opacity .3s;white-space:nowrap;
+  transform:translate(-50%,-50%)}
+.alabel.show{opacity:1}
+.alabel::after{content:'';position:absolute;left:50%;bottom:-4px;
+  transform:translateX(-50%);width:4px;height:4px;border-radius:50%;
+  background:#d21428;box-shadow:0 0 6px #d21428}
+</style>
+</head>
+<body>
+
+<!-- Loading screen -->
+<div id="loading">
+  <div class="ld-wrap">
+    <div class="ld-ring"><div class="ld-ring2"></div></div>
+  </div>
+  <div class="ld-label">Building Heart Model</div>
+  <div class="ld-sub">Generating anatomical geometry &amp; shaders…</div>
+  <div class="ld-bar"><div class="ld-fill" id="ldFill"></div></div>
+</div>
+
+<canvas id="c"></canvas>
+
+<!-- Top bar -->
+<div id="topbar">
+  <a href="{% url 'index' %}" class="back-btn">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="15 18 9 12 15 6"/></svg>
+    Home
+  </a>
+  <div class="topbar-brand">
+    <span class="hb-dot"></span>
+    Human Heart — Medical 3D Viewer
+    <span class="bpm-badge" id="bpmBadge">72 BPM</span>
+  </div>
+  <div style="width:72px"></div>
+</div>
+
+<!-- Camera presets -->
+<div id="presets">
+  <button class="pr-btn on" onclick="setView('anterior')">Anterior</button>
+  <button class="pr-btn" onclick="setView('right')">Right Lateral</button>
+  <button class="pr-btn" onclick="setView('left')">Left Lateral</button>
+  <button class="pr-btn" onclick="setView('posterior')">Posterior</button>
+  <button class="pr-btn" onclick="setView('superior')">Superior</button>
+  <button class="pr-btn" onclick="toggleLabels()">Labels</button>
+</div>
+
+<!-- Hint bar -->
+<div id="hints">
+  <div class="hint"><div class="hint-key">⊕</div><span>Drag to rotate</span></div>
+  <div class="hint"><div class="hint-key">⊜</div><span>Scroll to zoom</span></div>
+  <div class="hint"><div class="hint-key">⊛</div><span>Right-drag to pan</span></div>
+</div>
+
+<!-- Side info -->
+<div id="sideinfo">
+  <div class="si-card show" style="transition-delay:.05s">
+    <div class="si-label">Heart Rate</div>
+    <div class="si-val" id="hrVal">72 BPM</div>
+    <div class="si-bar"><div class="si-bar-fill" id="hrBar"></div></div>
+  </div>
+  <div class="si-card show" style="transition-delay:.15s">
+    <div class="si-label">Cardiac Phase</div>
+    <div class="si-val" id="phaseVal">Diastole</div>
+  </div>
+  <div class="si-card show" style="transition-delay:.25s">
+    <div class="si-label">Blood Flow</div>
+    <div class="si-val">5.2 L / min</div>
+  </div>
+  <div class="si-card show" style="transition-delay:.35s">
+    <div class="si-label">Stroke Volume</div>
+    <div class="si-val">72 mL</div>
+  </div>
+</div>
+
+<!-- Anatomy labels (positioned by JS) -->
+<div class="alabel" id="lbl-lv">Left Ventricle</div>
+<div class="alabel" id="lbl-rv">Right Ventricle</div>
+<div class="alabel" id="lbl-la">Left Atrium</div>
+<div class="alabel" id="lbl-ra">Right Atrium</div>
+<div class="alabel" id="lbl-ao">Ascending Aorta</div>
+<div class="alabel" id="lbl-pa">Pulmonary Trunk</div>
+<div class="alabel" id="lbl-svc">Superior Vena Cava</div>
+<div class="alabel" id="lbl-lad">LAD Artery</div>
+
+<script type="importmap">
+{
+  "imports": {
+    "three": "https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js",
+    "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/"
+  }
+}
+</script>
+
+<script type="module">
+import * as THREE from 'three';
+import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
+import { EffectComposer } from 'three/addons/postprocessing/EffectComposer.js';
+import { RenderPass } from 'three/addons/postprocessing/RenderPass.js';
+import { UnrealBloomPass } from 'three/addons/postprocessing/UnrealBloomPass.js';
+import { OutputPass } from 'three/addons/postprocessing/OutputPass.js';
+
+// ─── Loading progress ──────────────────────────────────────
+const fill = document.getElementById('ldFill');
+let prog = 0;
+const setProgress = v => { prog = v; fill.style.width = v + '%'; };
+setProgress(5);
+
+// ─── Perlin Noise (Ken Perlin's improved) ──────────────────
+const _perm = (() => {
+  const p = [151,160,137,91,90,15,131,13,201,95,96,53,194,233,7,225,140,36,
+    103,30,69,142,8,99,37,240,21,10,23,190,6,148,247,120,234,75,0,26,197,62,
+    94,252,219,203,117,35,11,32,57,177,33,88,237,149,56,87,174,20,125,136,171,
+    168,68,175,74,165,71,134,139,48,27,166,77,146,158,231,83,111,229,122,60,
+    211,133,230,220,105,92,41,55,46,245,40,244,102,143,54,65,25,63,161,1,216,
+    80,73,209,76,132,187,208,89,18,169,200,196,135,130,116,188,159,86,164,100,
+    109,198,173,186,3,64,52,217,226,250,124,123,5,202,38,147,118,126,255,82,
+    85,212,207,206,59,227,47,16,58,17,182,189,28,42,223,183,170,213,119,248,
+    152,2,44,154,163,70,221,153,101,155,167,43,172,9,129,22,39,253,19,98,108,
+    110,79,113,224,232,178,185,112,104,218,246,97,228,251,34,242,193,238,210,
+    144,12,191,179,162,241,81,51,145,235,249,14,239,107,49,192,214,31,181,199,
+    106,157,184,84,204,176,115,121,50,45,127,4,150,254,138,236,205,93,222,114,
+    67,29,24,72,243,141,128,195,78,66,215,61,156,180];
+  const t = new Uint8Array(512);
+  for (let i = 0; i < 512; i++) t[i] = p[i & 255];
+  return t;
+})();
+function _fade(t){return t*t*t*(t*(t*6-15)+10)}
+function _lerp(t,a,b){return a+t*(b-a)}
+function _grad(h,x,y,z){
+  const u=h<8?x:y, v=h<4?y:h===12||h===14?x:z;
+  return ((h&1)?-u:u)+((h&2)?-v:v);
+}
+function noise3(x,y,z){
+  const X=Math.floor(x)&255, Y=Math.floor(y)&255, Z=Math.floor(z)&255;
+  x-=Math.floor(x); y-=Math.floor(y); z-=Math.floor(z);
+  const u=_fade(x), v=_fade(y), w=_fade(z);
+  const A=_perm[X]+Y, AA=_perm[A]+Z, AB=_perm[A+1]+Z,
+        B=_perm[X+1]+Y, BA=_perm[B]+Z, BB=_perm[B+1]+Z;
+  return _lerp(w,
+    _lerp(v,_lerp(u,_grad(_perm[AA],x,y,z),   _grad(_perm[BA],x-1,y,z)),
+              _lerp(u,_grad(_perm[AB],x,y-1,z),_grad(_perm[BB],x-1,y-1,z))),
+    _lerp(v,_lerp(u,_grad(_perm[AA+1],x,y,z-1),   _grad(_perm[BA+1],x-1,y,z-1)),
+              _lerp(u,_grad(_perm[AB+1],x,y-1,z-1),_grad(_perm[BB+1],x-1,y-1,z-1))));
+}
+function fbm(x,y,z,oct=3){
+  let v=0,a=1,f=1,s=0;
+  for(let i=0;i<oct;i++){v+=noise3(x*f,y*f,z*f)*a;s+=a;a*=.5;f*=2.1;}
+  return v/s;
+}
+
+setProgress(15);
+
+// ─── Scene / Renderer / Camera ────────────────────────────
+const canvas = document.getElementById('c');
+const W = () => window.innerWidth, H = () => window.innerHeight;
+
+const renderer = new THREE.WebGLRenderer({canvas, antialias:true, powerPreference:'high-performance'});
+renderer.setSize(W(), H());
+renderer.setPixelRatio(Math.min(devicePixelRatio, 2));
+renderer.toneMapping = THREE.ACESFilmicToneMapping;
+renderer.toneMappingExposure = 1.05;
+renderer.shadowMap.enabled = true;
+renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+
+const scene = new THREE.Scene();
+scene.background = new THREE.Color(0x050106);
+scene.fog = new THREE.FogExp2(0x050106, 0.0018);
+
+const camera = new THREE.PerspectiveCamera(42, W()/H(), 0.5, 2000);
+camera.position.set(0, 25, 210);
+
+const controls = new OrbitControls(camera, canvas);
+controls.enableDamping = true;
+controls.dampingFactor = 0.055;
+controls.minDistance = 55;
+controls.maxDistance = 420;
+controls.minPolarAngle = 0.25;
+controls.maxPolarAngle = Math.PI - 0.25;
+controls.target.set(0, 8, 0);
+controls.update();
+
+// ─── Post-processing (Bloom) ───────────────────────────────
+const composer = new EffectComposer(renderer);
+composer.addPass(new RenderPass(scene, camera));
+const bloom = new UnrealBloomPass(new THREE.Vector2(W(), H()), 0.95, 0.55, 0.55);
+composer.addPass(bloom);
+composer.addPass(new OutputPass());
+
+setProgress(28);
+
+// ─── Custom SSS Shader Material for cardiac tissue ─────────
+const VERT = `
+varying vec3 vWP;
+varying vec3 vNW;
+varying vec3 vVD;
+void main(){
+  vec4 wp = modelMatrix * vec4(position,1.0);
+  vWP = wp.xyz;
+  vNW = normalize(mat3(modelMatrix) * normal);
+  vVD = normalize(cameraPosition - wp.xyz);
+  gl_Position = projectionMatrix * viewMatrix * wp;
+}`;
+
+const FRAG = `
+precision highp float;
+uniform vec3 uAlb;
+uniform float uRough;
+uniform vec3 uSSSCol;
+uniform float uSSS;
+uniform vec3 uL1P,uL2P,uL3P,uL4P;
+uniform vec3 uL1C,uL2C,uL3C,uL4C;
+uniform float uL1I,uL2I,uL3I,uL4I;
+varying vec3 vWP,vNW,vVD;
+
+vec3 brdf(vec3 N,vec3 V,vec3 L,vec3 lc,float li){
+  float NdL=max(dot(N,L),0.0);
+  if(NdL<1e-4) return vec3(0.0);
+  vec3 H=normalize(V+L);
+  float NdH=max(dot(N,H),0.0),NdV=max(dot(N,V),1e-3),HdV=max(dot(H,V),0.0);
+  float r2=uRough*uRough, r4=r2*r2;
+  float d=(NdH*NdH)*(r4-1.0)+1.0;
+  float NDF=r4/(3.14159*d*d+1e-5);
+  float k=r2*0.5;
+  float G=(NdV/(NdV*(1.0-k)+k))*(NdL/(NdL*(1.0-k)+k));
+  vec3 F0=vec3(0.025,0.010,0.010);
+  vec3 F=F0+(1.0-F0)*pow(1.0-HdV,5.0);
+  vec3 spec=NDF*G*F/(4.0*NdV*NdL+1e-4);
+  vec3 diff=(1.0-F)*uAlb/3.14159;
+  return (diff+spec)*lc*li*NdL;
+}
+
+void main(){
+  vec3 N=normalize(vNW), V=normalize(vVD);
+  vec3 L1=normalize(uL1P-vWP), L2=normalize(uL2P-vWP);
+  vec3 L3=normalize(uL3P-vWP), L4=normalize(uL4P-vWP);
+
+  vec3 c = brdf(N,V,L1,uL1C,uL1I)+brdf(N,V,L2,uL2C,uL2I)
+          +brdf(N,V,L3,uL3C,uL3I)+brdf(N,V,L4,uL4C,uL4I);
+
+  /* Subsurface scattering — forward scatter from key light */
+  float sss = max(0.0,dot(L1,-N)+0.28)*max(0.0,dot(L1,V));
+  c += uSSSCol * sss * uSSS;
+
+  /* Wrap diffuse (hemispherical soft light) */
+  c += uAlb * max(0.0,(dot(N,L1)+0.45)/1.45) * uL1C * uL1I * 0.18;
+
+  /* Fresnel rim glow */
+  c += uSSSCol * pow(1.0-max(dot(N,V),0.0),4.2) * 0.12;
+
+  /* Ambient */
+  c += uAlb*0.055 + vec3(0.018,0.004,0.004);
+
+  /* Tone map + gamma */
+  c = c/(c+0.58)*1.32;
+  c = pow(max(c,vec3(0.0)),vec3(0.4545));
+  gl_FragColor = vec4(c,1.0);
+}`;
+
+// Fixed world-space light positions (scale 50 = local 1 → world 50)
+const LP = {
+  L1: new THREE.Vector3( 160,  240,  220),  // key
+  L2: new THREE.Vector3(-200,   90,  160),  // fill
+  L3: new THREE.Vector3(  80, -120, -200),  // rim
+  L4: new THREE.Vector3(   0,  -50,  100),  // under/blood pulse
+};
+
+function heartMat(albHex, sssHex, sss=0.5, rough=0.70) {
+  return new THREE.ShaderMaterial({
+    uniforms:{
+      uAlb:{value:new THREE.Color(albHex)},
+      uRough:{value:rough},
+      uSSSCol:{value:new THREE.Color(sssHex)},
+      uSSS:{value:sss},
+      uL1P:{value:LP.L1}, uL1C:{value:new THREE.Vector3(1.00,0.96,0.90)}, uL1I:{value:3.8},
+      uL2P:{value:LP.L2}, uL2C:{value:new THREE.Vector3(0.70,0.84,1.00)}, uL2I:{value:1.4},
+      uL3P:{value:LP.L3}, uL3C:{value:new THREE.Vector3(1.00,0.65,0.55)}, uL3I:{value:0.85},
+      uL4P:{value:LP.L4}, uL4C:{value:new THREE.Vector3(1.00,0.18,0.10)}, uL4I:{value:0.35},
+    },
+    vertexShader:VERT, fragmentShader:FRAG,
+  });
+}
+
+// Per-component materials
+const matLV   = heartMat(0x6e1010, 0xd41818, 0.56, 0.70);
+const matRV   = heartMat(0x5f0e0e, 0xcc1616, 0.52, 0.73);
+const matAtr  = heartMat(0x7a1212, 0xd82020, 0.50, 0.68);
+const matRAA  = heartMat(0x721010, 0xd01a1a, 0.48, 0.70);
+
+const matAorta = new THREE.MeshStandardMaterial({color:0x8a1c1c,roughness:0.38,metalness:0.10});
+const matPA    = new THREE.MeshStandardMaterial({color:0x4a1a5a,roughness:0.44,metalness:0.08});
+const matVein  = new THREE.MeshStandardMaterial({color:0x3d0a22,roughness:0.55,metalness:0.05});
+const matArt   = new THREE.MeshStandardMaterial({color:0x6a0e0e,roughness:0.50,metalness:0.05});
+const matFat   = new THREE.MeshStandardMaterial({color:0xb8882a,roughness:0.68,metalness:0.00});
+const matSulc  = new THREE.MeshStandardMaterial({color:0x3a0808,roughness:0.80,metalness:0.00});
+const matPeri  = new THREE.MeshPhysicalMaterial({
+  color:0xfff0ee,roughness:0.08,metalness:0.0,
+  transmission:0.88,thickness:1.2,
+  transparent:true,opacity:0.13,
+  side:THREE.FrontSide,depthWrite:false,
+});
+
+setProgress(40);
+
+// ─── Geometry helpers ──────────────────────────────────────
+function addFBM(geo, str, sc) {
+  const p=geo.attributes.position, v=new THREE.Vector3(), n=new THREE.Vector3();
+  for(let i=0;i<p.count;i++){
+    v.fromBufferAttribute(p,i);
+    n.copy(v).normalize();
+    const d=fbm(v.x*sc,v.y*sc,v.z*sc,3)*str;
+    v.addScaledVector(n,d);
+    p.setXYZ(i,v.x,v.y,v.z);
+  }
+  p.needsUpdate=true; geo.computeVertexNormals();
+}
+
+function defSphere(rx,ry,rz,segs,fn) {
+  const g=new THREE.SphereGeometry(1,segs,segs);
+  const p=g.attributes.position, v=new THREE.Vector3();
+  for(let i=0;i<p.count;i++){
+    v.fromBufferAttribute(p,i);
+    v.x*=rx; v.y*=ry; v.z*=rz;
+    if(fn) fn(v);
+    p.setXYZ(i,v.x,v.y,v.z);
+  }
+  p.needsUpdate=true; g.computeVertexNormals(); return g;
+}
+
+function makeTube(pts, r, ts=22, rs=9) {
+  const curve=new THREE.CatmullRomCurve3(pts.map(p=>new THREE.Vector3(...p)));
+  const g=new THREE.TubeGeometry(curve,ts,r,rs,false);
+  addFBM(g, r*0.07, 4.0);
+  return {g, curve};
+}
+
+function mesh(geo, mat, rx, ry, rz, px, py, pz, parent) {
+  const m=new THREE.Mesh(geo,mat);
+  if(rx!==undefined){ m.rotation.set(rx,ry,rz); }
+  if(px!==undefined){ m.position.set(px,py,pz); }
+  parent.add(m); return m;
+}
+
+// ─── Heart group ───────────────────────────────────────────
+const G = new THREE.Group();
+scene.add(G);
+G.scale.setScalar(50);
+
+// ─── LEFT VENTRICLE (main body) ───────────────────────────
+const lvGeo = (() => {
+  const g=new THREE.SphereGeometry(1,64,64);
+  const p=g.attributes.position, v=new THREE.Vector3();
+  for(let i=0;i<p.count;i++){
+    v.fromBufferAttribute(p,i);
+    const y=v.y;
+    // Taper apex (bottom)
+    const tx = y<0 ? Math.max(0.12, 1.0+y*0.78) : 1.0+y*0.14;
+    const tz = y<0 ? Math.max(0.10, 1.0+y*0.78)*0.80 : (1.0+y*0.10)*0.80;
+    v.x *= tx; v.z *= tz;
+    v.y  = y*1.65;
+    // Slight posterior/lateral lean at apex
+    v.z += y*0.10; v.x -= y*0.04;
+    // FBM surface texture
+    const d=fbm(v.x*2.2,v.y*2.2,v.z*2.2,3)*0.038;
+    const len=v.length(); if(len>0){v.x+=(v.x/len)*d;v.y+=(v.y/len)*d;v.z+=(v.z/len)*d;}
+    p.setXYZ(i,v.x,v.y,v.z);
+  }
+  p.needsUpdate=true; g.computeVertexNormals(); return g;
+})();
+const lvMesh = new THREE.Mesh(lvGeo, matLV);
+G.add(lvMesh);
+
+// ─── RIGHT VENTRICLE (crescent, anterior) ─────────────────
+const rvGeo = (() => {
+  const g=new THREE.SphereGeometry(0.80,48,48);
+  const p=g.attributes.position, v=new THREE.Vector3();
+  for(let i=0;i<p.count;i++){
+    v.fromBufferAttribute(p,i);
+    v.z *= 0.42;  // squash anterior-posterior
+    v.x *= 1.22;  // widen
+    // Truncate top
+    if(v.y>0.55){ v.y=0.55+(v.y-0.55)*0.30; }
+    v.y *= 1.15;
+    const d=fbm(v.x*2.8,v.y*2.8,v.z*2.8,2)*0.030;
+    const len=v.length(); if(len>0){v.x+=(v.x/len)*d;v.y+=(v.y/len)*d;v.z+=(v.z/len)*d;}
+    p.setXYZ(i,v.x,v.y,v.z);
+  }
+  p.needsUpdate=true; g.computeVertexNormals(); return g;
+})();
+const rvMesh = new THREE.Mesh(rvGeo, matRV);
+rvMesh.position.set(0.52, 0.05, 0.62);
+G.add(rvMesh);
+
+// ─── LEFT ATRIUM (posterior-superior) ────────────────────
+const laGeo = defSphere(0.54, 0.46, 0.48, 36, v=>{
+  const d=fbm(v.x*2.5,v.y*2.5,v.z*2.5,2)*0.032;
+  const len=v.length(); if(len>0){v.x+=(v.x/len)*d;v.y+=(v.y/len)*d;v.z+=(v.z/len)*d;}
+});
+const laMesh = new THREE.Mesh(laGeo, matAtr);
+laMesh.position.set(-0.32, 0.78, -0.70);
+G.add(laMesh);
+
+// ─── RIGHT ATRIUM ─────────────────────────────────────────
+const raGeo = defSphere(0.54, 0.48, 0.50, 36, v=>{
+  const d=fbm(v.x*2.5,v.y*2.5,v.z*2.5,2)*0.030;
+  const len=v.length(); if(len>0){v.x+=(v.x/len)*d;v.y+=(v.y/len)*d;v.z+=(v.z/len)*d;}
+});
+const raMesh = new THREE.Mesh(raGeo, matAtr);
+raMesh.position.set(0.72, 0.72, -0.10);
+G.add(raMesh);
+
+// ─── RIGHT ATRIAL APPENDAGE ────────────────────────────────
+const raaGeo = defSphere(0.24, 0.22, 0.20, 24, null);
+addFBM(raaGeo, 0.022, 3.5);
+const raaMesh = new THREE.Mesh(raaGeo, matRAA);
+raaMesh.position.set(1.05, 0.96, 0.42);
+raaMesh.rotation.z = -0.3;
+G.add(raaMesh);
+
+setProgress(52);
+
+// ─── GREAT VESSELS ────────────────────────────────────────
+
+// Ascending aorta (root → arch)
+const {g:aaGeo} = makeTube([
+  [-0.20, 0.85, 0.05],[-0.20, 1.05, 0.04],[-0.19, 1.28, 0.02],[-0.17, 1.50, -0.04],
+], 0.195, 18, 10);
+G.add(new THREE.Mesh(aaGeo, matAorta));
+
+// Aortic arch
+const {g:archGeo} = makeTube([
+  [-0.17, 1.50, -0.04],[-0.05, 1.60, -0.14],[0.12, 1.62, -0.26],
+  [0.30, 1.58, -0.32],[0.48, 1.50, -0.34],[0.55, 1.35, -0.32],
+], 0.175, 20, 10);
+G.add(new THREE.Mesh(archGeo, matAorta));
+
+// Brachiocephalic trunk
+const {g:btGeo} = makeTube([
+  [-0.02, 1.60, -0.14],[0.02, 1.75, -0.12],[0.05, 1.88, -0.10],
+], 0.095, 10, 7);
+G.add(new THREE.Mesh(btGeo, matAorta));
+
+// Left common carotid
+const {g:lccGeo} = makeTube([
+  [0.12, 1.62, -0.26],[0.10, 1.80, -0.24],[0.08, 1.95, -0.20],
+], 0.072, 8, 7);
+G.add(new THREE.Mesh(lccGeo, matAorta));
+
+// Left subclavian
+const {g:lscGeo} = makeTube([
+  [0.30, 1.58, -0.32],[0.34, 1.70, -0.32],[0.42, 1.82, -0.28],
+], 0.070, 8, 7);
+G.add(new THREE.Mesh(lscGeo, matAorta));
+
+// Pulmonary trunk
+const {g:ptGeo} = makeTube([
+  [ 0.22, 0.84, 0.48],[ 0.18, 1.06, 0.44],[ 0.08, 1.20, 0.32],
+  [-0.05, 1.25, 0.18],[-0.22, 1.22, 0.08],[-0.35, 1.15, 0.04],
+], 0.178, 20, 9);
+G.add(new THREE.Mesh(ptGeo, matPA));
+
+// Right pulmonary artery
+const {g:rpaGeo} = makeTube([
+  [-0.22, 1.22, 0.08],[-0.08, 1.22, -0.18],[0.15, 1.20, -0.30],
+  [ 0.42, 1.18, -0.28],[0.60, 1.14, -0.20],
+], 0.110, 14, 8);
+G.add(new THREE.Mesh(rpaGeo, matPA));
+
+// Left pulmonary artery
+const {g:lpaGeo} = makeTube([
+  [-0.35, 1.15, 0.04],[-0.50, 1.12, -0.10],[-0.62, 1.08, -0.25],
+  [-0.70, 1.02, -0.40],
+], 0.105, 12, 8);
+G.add(new THREE.Mesh(lpaGeo, matPA));
+
+// Superior vena cava
+const {g:svcGeo} = makeTube([
+  [0.72, 1.62, -0.12],[0.72, 1.38, -0.12],[0.72, 1.14, -0.12],[0.72, 0.90, -0.14],
+], 0.135, 14, 9);
+G.add(new THREE.Mesh(svcGeo, matVein));
+
+// Inferior vena cava
+const {g:ivcGeo} = makeTube([
+  [0.72, 0.42, -0.14],[0.74, 0.18, -0.16],[0.76, -0.10, -0.18],
+  [0.72, -0.38, -0.16],
+], 0.130, 14, 9);
+G.add(new THREE.Mesh(ivcGeo, matVein));
+
+// 4 Pulmonary veins → LA
+[[-0.58,0.90,-0.58],[-0.60,0.72,-0.60],[-0.12,0.90,-0.66],[-0.14,0.72,-0.64]].forEach(pos => {
+  const {g:pvg} = makeTube([pos, [-0.32,0.80,-0.68]], 0.072, 8, 6);
+  G.add(new THREE.Mesh(pvg, matArt));
+});
+
+setProgress(64);
+
+// ─── CORONARY ARTERIES ─────────────────────────────────────
+
+// LAD (Left Anterior Descending)
+const {g:ladGeo, curve:ladCurve} = makeTube([
+  [ 0.08, 0.80, 0.86],[ 0.06, 0.55, 0.91],[ 0.04, 0.22, 0.92],
+  [ 0.02,-0.15, 0.88],[ 0.00,-0.52, 0.82],[-0.02,-0.88, 0.72],
+  [-0.02,-1.10, 0.58],
+], 0.045, 24, 7);
+G.add(new THREE.Mesh(ladGeo, matArt));
+
+// LAD Diagonal branch
+const {g:diagGeo} = makeTube([
+  [0.04, 0.22, 0.92],[0.20, 0.08, 0.88],[0.38,-0.08, 0.80],[0.50,-0.22, 0.68],
+], 0.030, 10, 6);
+G.add(new THREE.Mesh(diagGeo, matArt));
+
+// LCx (Left Circumflex)
+const {g:lcxGeo, curve:lcxCurve} = makeTube([
+  [ 0.06, 0.82, 0.72],[-0.10, 0.88, 0.60],[-0.28, 0.85, 0.40],
+  [-0.45, 0.78, 0.12],[-0.55, 0.68,-0.18],[-0.58, 0.55,-0.42],
+  [-0.52, 0.38,-0.60],
+], 0.042, 22, 7);
+G.add(new THREE.Mesh(lcxGeo, matArt));
+
+// Obtuse marginal (OM1)
+const {g:omGeo} = makeTube([
+  [-0.45,0.78,0.12],[-0.55,0.58,0.08],[-0.62,0.32,0.04],[-0.65,0.05,-0.02],
+], 0.028, 10, 6);
+G.add(new THREE.Mesh(omGeo, matArt));
+
+// RCA (Right Coronary Artery)
+const {g:rcaGeo, curve:rcaCurve} = makeTube([
+  [0.68, 0.65, 0.28],[0.86, 0.42, 0.18],[0.92, 0.12, 0.08],
+  [0.90,-0.18, 0.02],[0.84,-0.45,-0.06],[0.74,-0.72,-0.14],
+  [0.60,-0.95,-0.20],[0.42,-1.08,-0.22],
+], 0.042, 26, 7);
+G.add(new THREE.Mesh(rcaGeo, matArt));
+
+// Posterior descending artery (PDA)
+const {g:pdaGeo} = makeTube([
+  [0.42,-1.08,-0.22],[0.22,-1.12,-0.28],[0.05,-1.10,-0.32],
+  [-0.10,-1.05,-0.34],[-0.20,-0.98,-0.32],
+], 0.028, 12, 6);
+G.add(new THREE.Mesh(pdaGeo, matArt));
+
+// ─── INTERVENTRICULAR SULCUS (anterior) ──────────────────
+const {g:ivGeo} = makeTube([
+  [0.05, 0.80, 0.90],[0.03, 0.50, 0.94],[0.01, 0.12, 0.93],
+  [-0.01,-0.28, 0.88],[-0.03,-0.68, 0.80],[-0.04,-1.08, 0.65],
+], 0.032, 20, 6);
+G.add(new THREE.Mesh(ivGeo, matSulc));
+
+setProgress(75);
+
+// ─── EPICARDIAL FAT PADS ──────────────────────────────────
+[
+  {p:[0.12, 0.35, 0.92], s:[0.16,0.12,0.10]},
+  {p:[0.45, 0.10, 0.68], s:[0.14,0.10,0.09]},
+  {p:[-0.25, 0.40, 0.76],s:[0.12,0.10,0.08]},
+  {p:[0.70, 0.20, 0.28], s:[0.10,0.09,0.08]},
+  {p:[0.05,-0.20, 0.88], s:[0.10,0.08,0.07]},
+].forEach(({p, s}) => {
+  const fg = new THREE.SphereGeometry(1, 18, 18);
+  addFBM(fg, 0.08, 2.5);
+  const fm = new THREE.Mesh(fg, matFat);
+  fm.scale.set(...s); fm.position.set(...p);
+  G.add(fm);
+});
+
+// ─── PERICARDIUM (translucent outer sac) ──────────────────
+const periGeo = defSphere(1.15, 1.25, 1.05, 32, null);
+addFBM(periGeo, 0.02, 2.0);
+G.add(new THREE.Mesh(periGeo, matPeri));
+
+setProgress(82);
+
+// ─── BLOOD FLOW PARTICLE SYSTEM ───────────────────────────
+// Each path: {curve, speed, color, count}
+const bloodPaths = [
+  // Aorta (bright arterial red — fast)
+  { pts:[[-0.20,0.85,0.05],[-0.18,1.28,0.02],[-0.05,1.60,-0.14],
+          [0.30,1.58,-0.32],[0.55,1.35,-0.32]], speed:0.48, col:0xff2215, count:260 },
+  // Brachiocephalic
+  { pts:[[-0.02,1.60,-0.14],[0.02,1.75,-0.12],[0.05,1.92,-0.08]],
+    speed:0.40, col:0xff2215, count:80 },
+  // LAD coronary (arterial)
+  { pts:[[0.08,0.80,0.86],[0.04,0.22,0.92],[0.00,-0.52,0.82],[-0.02,-1.10,0.58]],
+    speed:0.28, col:0xff3020, count:160 },
+  // LCx coronary
+  { pts:[[0.06,0.82,0.72],[-0.28,0.85,0.40],[-0.55,0.68,-0.18],[-0.52,0.38,-0.60]],
+    speed:0.26, col:0xff3020, count:140 },
+  // RCA
+  { pts:[[0.68,0.65,0.28],[0.92,0.12,0.08],[0.84,-0.45,-0.06],[0.60,-0.95,-0.20]],
+    speed:0.28, col:0xff2820, count:160 },
+  // Pulmonary trunk (deoxygenated — dark)
+  { pts:[[0.22,0.84,0.48],[0.08,1.20,0.32],[-0.22,1.22,0.08],[-0.35,1.15,0.04]],
+    speed:0.38, col:0x9b1545, count:180 },
+  // Right pulmonary artery
+  { pts:[[-0.22,1.22,0.08],[0.15,1.20,-0.30],[0.60,1.14,-0.20]],
+    speed:0.30, col:0x8a1240, count:100 },
+  // SVC (venous, entering RA — slow)
+  { pts:[[0.72,1.62,-0.12],[0.72,1.14,-0.12],[0.72,0.90,-0.14]],
+    speed:0.20, col:0x7a1035, count:90 },
+  // IVC
+  { pts:[[0.72,-0.38,-0.16],[0.74,0.18,-0.16],[0.72,0.42,-0.14]],
+    speed:0.20, col:0x7a1035, count:90 },
+  // Pulmonary veins → LA (bright arterial)
+  { pts:[[-0.58,0.90,-0.58],[-0.32,0.80,-0.68]], speed:0.32, col:0xff2820, count:70 },
+  { pts:[[-0.12,0.90,-0.66],[-0.32,0.80,-0.68]], speed:0.32, col:0xff2820, count:70 },
+  // Diagonal branch
+  { pts:[[0.04,0.22,0.92],[0.38,-0.08,0.80],[0.50,-0.22,0.68]],
+    speed:0.24, col:0xff3020, count:70 },
+];
+
+const totalBP = bloodPaths.reduce((s,p)=>s+p.count,0);
+const bpPositions = new Float32Array(totalBP*3);
+const bpColors    = new Float32Array(totalBP*3);
+const bpOffsets   = new Float32Array(totalBP);
+const bpPathIdx   = new Uint8Array(totalBP);
+const bpCurvePts  = [];
+const bpSpeeds    = [];
+
+let bpIdx = 0;
+bloodPaths.forEach((bp, pi) => {
+  const curve = new THREE.CatmullRomCurve3(bp.pts.map(p=>new THREE.Vector3(...p)));
+  bpCurvePts.push(curve.getPoints(300));
+  bpSpeeds.push(bp.speed);
+  const c = new THREE.Color(bp.col);
+  for (let j=0; j<bp.count; j++) {
+    bpOffsets[bpIdx]  = Math.random();
+    bpPathIdx[bpIdx]  = pi;
+    bpColors[bpIdx*3]   = c.r;
+    bpColors[bpIdx*3+1] = c.g;
+    bpColors[bpIdx*3+2] = c.b;
+    bpIdx++;
+  }
+});
+
+const bpGeo = new THREE.BufferGeometry();
+const bpPosAttr = new THREE.BufferAttribute(bpPositions, 3);
+bpGeo.setAttribute('position', bpPosAttr);
+bpGeo.setAttribute('color',    new THREE.BufferAttribute(bpColors, 3));
+
+const bpMat = new THREE.PointsMaterial({
+  size: 0.055, vertexColors: true,
+  blending: THREE.AdditiveBlending,
+  depthWrite: false, transparent: true, opacity: 0.92,
+  sizeAttenuation: true,
+});
+
+const bloodPoints = new THREE.Points(bpGeo, bpMat);
+G.add(bloodPoints);
+
+function updateBlood(dt, flowMul) {
+  for (let i=0; i<totalBP; i++) {
+    const pi = bpPathIdx[i];
+    bpOffsets[i] = (bpOffsets[i] + bpSpeeds[pi] * dt * flowMul) % 1.0;
+    const pts = bpCurvePts[pi];
+    const si  = Math.min(Math.floor(bpOffsets[i]*(pts.length-1)), pts.length-1);
+    const pt  = pts[si];
+    bpPosAttr.setXYZ(i, pt.x, pt.y, pt.z);
+  }
+  bpPosAttr.needsUpdate = true;
+}
+
+setProgress(90);
+
+// ─── LIGHTS (for shadows + ambient on standard materials) ─
+const ambient = new THREE.AmbientLight(0x150308, 0.8);
+scene.add(ambient);
+const keyLight = new THREE.SpotLight(0xfff5ee, 4.5, 800, Math.PI/5, 0.4);
+keyLight.position.set(160, 240, 220); keyLight.castShadow = true;
+keyLight.shadow.mapSize.set(1024,1024);
+scene.add(keyLight); scene.add(keyLight.target);
+const fillLight = new THREE.DirectionalLight(0xb3d4ff, 1.4);
+fillLight.position.set(-200, 90, 160);
+scene.add(fillLight);
+const rimLight = new THREE.DirectionalLight(0xff9977, 0.9);
+rimLight.position.set(80, -120, -200);
+scene.add(rimLight);
+const heartGlow = new THREE.PointLight(0xd21428, 0.5, 300);
+heartGlow.position.set(0, -50, 100);
+scene.add(heartGlow);
+
+// ─── HEARTBEAT function ────────────────────────────────────
+function heartbeatScale(t) {
+  const BPM = 72, period = 60/BPM;
+  const ph = (t % period) / period;
+  if (ph < 0.10) return 1.0 + Math.sin(ph/0.10 * Math.PI) * 0.048;
+  if (ph < 0.35) { const p2=(ph-0.10)/0.25; return 1.048 - p2*p2*0.040; }
+  const p3 = (ph-0.35)/0.65;
+  return 1.008 + Math.sin(p3*Math.PI)*0.005 - 0.008*p3;
+}
+
+// ─── CAMERA PRESETS ────────────────────────────────────────
+const VIEWS = {
+  anterior:  { pos:new THREE.Vector3(0, 25, 210),  tgt:new THREE.Vector3(0, 8, 0) },
+  right:     { pos:new THREE.Vector3(210, 25, 0),   tgt:new THREE.Vector3(0, 8, 0) },
+  left:      { pos:new THREE.Vector3(-210, 25, 0),  tgt:new THREE.Vector3(0, 8, 0) },
+  posterior: { pos:new THREE.Vector3(0, 25, -210),  tgt:new THREE.Vector3(0, 8, 0) },
+  superior:  { pos:new THREE.Vector3(0, 220, 60),   tgt:new THREE.Vector3(0, 0, 0) },
+};
+let camLerp = null;
+
+window.setView = (name) => {
+  document.querySelectorAll('.pr-btn').forEach(b => b.classList.remove('on'));
+  event.target.classList.add('on');
+  const v = VIEWS[name];
+  if (!v) return;
+  camLerp = { startPos: camera.position.clone(), startTgt: controls.target.clone(),
+               endPos: v.pos.clone(), endTgt: v.tgt.clone(), t: 0 };
+};
+
+// ─── ANATOMY LABELS ────────────────────────────────────────
+let labelsVisible = false;
+const labelDefs = [
+  { id:'lbl-lv',  wp: new THREE.Vector3(-0.2, -0.3, 1.0) },
+  { id:'lbl-rv',  wp: new THREE.Vector3( 0.7,  0.0, 0.9) },
+  { id:'lbl-la',  wp: new THREE.Vector3(-0.5,  0.8,-0.7) },
+  { id:'lbl-ra',  wp: new THREE.Vector3( 1.0,  0.7,-0.1) },
+  { id:'lbl-ao',  wp: new THREE.Vector3(-0.2,  1.5, 0.0) },
+  { id:'lbl-pa',  wp: new THREE.Vector3( 0.1,  1.2, 0.5) },
+  { id:'lbl-svc', wp: new THREE.Vector3( 0.7,  1.5,-0.1) },
+  { id:'lbl-lad', wp: new THREE.Vector3( 0.1, -0.2, 0.9) },
+];
+
+window.toggleLabels = () => {
+  labelsVisible = !labelsVisible;
+  document.querySelectorAll('.alabel').forEach(el =>
+    el.classList.toggle('show', labelsVisible));
+};
+
+const _tmp = new THREE.Vector3();
+function updateLabels() {
+  if (!labelsVisible) return;
+  labelDefs.forEach(({id, wp}) => {
+    _tmp.copy(wp).multiplyScalar(50); // local → world
+    _tmp.project(camera);
+    const x = (_tmp.x*0.5+0.5)*W();
+    const y = (-_tmp.y*0.5+0.5)*H();
+    const el = document.getElementById(id);
+    if (el) { el.style.left = x+'px'; el.style.top = y+'px'; }
+  });
+}
+
+// ─── ANIMATION CLOCK ──────────────────────────────────────
+const clock = new THREE.Clock();
+let lastT = 0, hintsHidden = false;
+
+// ─── RENDER LOOP ───────────────────────────────────────────
+function animate() {
+  requestAnimationFrame(animate);
+  const t  = clock.getElapsedTime();
+  const dt = t - lastT; lastT = t;
+  const safeDt = Math.min(dt, 0.05);
+
+  // Heartbeat
+  const hbs = heartbeatScale(t);
+  G.scale.setScalar(50 * hbs);
+
+  // Cardiac phase (for systole/diastole indicator)
+  const ph = (t % (60/72)) / (60/72);
+  const isSystole = ph < 0.35;
+  document.getElementById('phaseVal').textContent = isSystole ? 'Systole' : 'Diastole';
+
+  // Pulsing heart glow
+  heartGlow.intensity = 0.4 + Math.sin(t * (Math.PI * 2 * 72/60)) * 0.3;
+  const uL4I = 0.30 + heartGlow.intensity * 0.15;
+  [matLV, matRV, matAtr, matRAA].forEach(m => {
+    m.uniforms.uL4I.value = uL4I;
+  });
+
+  // Blood flow speed (faster during systole)
+  const flowMul = isSystole ? 1.75 : 0.65;
+  updateBlood(safeDt, flowMul);
+
+  // Camera lerp (preset transitions)
+  if (camLerp) {
+    camLerp.t += safeDt * 1.5;
+    const f = Math.min(camLerp.t, 1.0);
+    const ease = f < 0.5 ? 2*f*f : -1+(4-2*f)*f; // smooth-step
+    camera.position.lerpVectors(camLerp.startPos, camLerp.endPos, ease);
+    controls.target.lerpVectors(camLerp.startTgt, camLerp.endTgt, ease);
+    if (camLerp.t >= 1.0) camLerp = null;
+  }
+
+  controls.update();
+  updateLabels();
+
+  // Hide hints after 7 seconds
+  if (!hintsHidden && t > 7) {
+    hintsHidden = true;
+    document.getElementById('hints').classList.add('hide');
+  }
+
+  composer.render();
+}
+
+// ─── RESIZE ───────────────────────────────────────────────
+window.addEventListener('resize', () => {
+  camera.aspect = W()/H();
+  camera.updateProjectionMatrix();
+  renderer.setSize(W(), H());
+  composer.setSize(W(), H());
+  bloom.setSize(W(), H());
+});
+
+// ─── LOADING COMPLETE ─────────────────────────────────────
+setProgress(100);
+setTimeout(() => {
+  document.getElementById('loading').classList.add('out');
+  setTimeout(() => document.getElementById('loading').remove(), 950);
+  animate();
+}, 420);
+
+</script>
+</body>
+</html>
