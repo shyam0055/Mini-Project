@@ -1,4 +1,44 @@
+# ── Media / large binaries ──────────────────────────────────────────
 *.mp4
-*.zip
 *.mov
 *.mkv
+*.zip
+*.avi
+*.wmv
+
+# ── Python ───────────────────────────────────────────────────────────
+__pycache__/
+*.py[cod]
+*.pyd
+*.pyo
+*.egg-info/
+*.egg
+dist/
+build/
+.eggs/
+
+# ── Virtual environment ──────────────────────────────────────────────
+venv/
+env/
+.venv/
+.env
+
+# ── Django runtime / generated files ────────────────────────────────
+*.sqlite3
+db.sqlite3
+testdata.txt
+session.txt
+staticfiles/
+media/
+
+# ── IDE / editor ─────────────────────────────────────────────────────
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# ── OS ───────────────────────────────────────────────────────────────
+.DS_Store
+Thumbs.db
+desktop.ini
