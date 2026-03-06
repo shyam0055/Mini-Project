@@ -1,110 +1,255 @@
-{% load static %}
-<html>
-<head>
-<title>Heart Disease Prediction</title>
-<meta http-equiv="content-type" content="text/html; charset=utf-8" />
-<link rel="stylesheet" type="text/css" href="{% static 'style.css' %}"/>
- <script LANGUAGE="Javascript" >
-function validate(){
-	var x=document.forms["f1"]["username"].value;
-	var y=document.forms["f1"]["password"].value;
-	var c=document.forms["f1"]["contact"].value;
-	var e=document.forms["f1"]["email"].value;
-	var a=document.forms["f1"]["address"].value;
-	if(x == null || x==""){
-		window.alert("Username must be enter");
-		document.f1.username.focus();
-		return false;
-	}
-	if(y == null || y==""){
-		window.alert("Password must be enter");
-		document.f1.password.focus();
-		return false;
-	}
-	if(c == null || c==""){
-		window.alert("Contact No must be enter");
-		document.f1.contact.focus();
-		return false;
-	}
-	if(isNaN(c)){
-		window.alert("Please enter valid contact number");
-		document.f1.contact.focus();
-		return false;
-	}
-	if(e == null || e==""){
-		window.alert("Email ID must be enter");
-		document.f1.email.focus();
-		return false;
-	}
-	var filter = /^([a-zA-Z0-9_\.\-])+\@(gmail+\.)+(com)+$/;
-	if (!filter.test(e)) {
-		window.alert('enter a valid email address');
-		document.f1.email.focus();
-		return false;
-	}
-	if(a == null || a==""){
-		window.alert("Address must be enter");
-		document.f1.address.focus();
-		return false;
-	}
-	return true;
-}
-		
-	
-	</script>
-</head>
-<body>
-<div id="wrapper">
-	<div id="header">
-		<div id="logo">
-			<center><font size="4" color="yellow">Design And Implementing Heart Disease Prediction
-Using Naives Bayesian</font></center>
-		</div>
-		<div id="slogan">
-			
-		</div>
-	</div>
-	<div id="menu">
-		<ul><center>
-	  <li><a href="{% url 'index' %}">Home</a></li>
-      <li><a href="{% url 'Login' %}">Login</a></li>
-      <li><a href="{% url 'Register' %}">Register Here</a></li>
-			
-		</center></ul>
-<br class="clearfix" />
-				</div>
-			
-	<div id="splash">
-		<img class="pic" src="{% static 'images/investor.jpg' %}" width="870" height="230" alt="" />
-	</div>	
-			<center>
-<form name="f1" method="post" action={% url 'Signup' %} OnSubmit="return validate()">
-	{% csrf_token %}<br/>
-   <h3><b>New User Signup Screen</b></h3>
-   
-	<font size="" color="black"><center>{{ data }}</center></font>
-						
-						<table align="center" width="80" >
-			 <tr><td><b>Username</b></td><td><input type="text" name="username" style="font-family: Comic Sans MS" size="30"/></td></tr>
-         
-		  
-		<tr><td><b>Password</b></td><td><input type="password" name="password" style="font-family: Comic Sans MS" size="30"/></td></tr>
+{% extends 'base.html' %}
+{% block title %}Register{% endblock %}
 
-		
-		<tr><td><b>Contact&nbsp;No</b></td><td><input type="text" name="contact" style="font-family: Comic Sans MS" size="20"/></td></tr>
+{% block nav %}
+<li><a href="{% url 'index' %}">Home</a></li>
+<li><a href="{% url 'Login' %}">Login</a></li>
+<li><a href="{% url 'Register' %}" class="active cta">Register</a></li>
+{% endblock %}
 
-		<tr><td><b>Email&nbsp;ID</b></td><td><input type="text" name="email" style="font-family: Comic Sans MS" size="40"/></td></tr>
+{% block extra_css %}
+<style>
+  .reg-shell {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 2.5rem 1.5rem;
+    min-height: calc(100vh - 60px - 52px);
+    animation: pageIn 380ms cubic-bezier(0.4,0,0.2,1) both;
+  }
+  .reg-container {
+    width: 100%;
+    max-width: 620px;
+  }
 
-		<tr><td><b>Address</b></td><td><input type="text" name="address" style="font-family: Comic Sans MS" size="60"/></td></tr>
-		
-		
-         
-			<tr><td></td><td><input type="submit" value="Register">
-			</td>
-			</table>
-				</div>	
-					
-				</div>
-				<br/><br/><br/><br/><br/><br/>
-	</body>
-</html>
+  /* Top accent header */
+  .reg-header {
+    text-align: center;
+    margin-bottom: 2rem;
+  }
+  .reg-icon-wrap {
+    width: 64px; height: 64px;
+    background: linear-gradient(145deg, rgba(0,113,227,.12), rgba(0,113,227,.22));
+    backdrop-filter: blur(8px);
+    border: 1px solid rgba(0,113,227,.2);
+    border-radius: 18px;
+    display: flex; align-items: center; justify-content: center;
+    margin: 0 auto 1rem;
+    box-shadow: 0 4px 20px rgba(77,168,255,.22);
+    animation: iconBounce .6s cubic-bezier(0.34,1.56,0.64,1) both;
+  }
+  @keyframes iconBounce { from { transform: scale(0.5); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+  .reg-icon-wrap svg { width: 28px; height: 28px; color: var(--primary); }
+  .reg-header h1 { font-size: 1.85rem; font-weight: 700; letter-spacing: -.4px; color: var(--text); margin-bottom: .35rem; }
+  .reg-header p  { font-size: .9rem; color: var(--text-muted); }
+
+  /* Progress dots */
+  .progress-dots {
+    display: flex; align-items: center; justify-content: center; gap: .4rem;
+    margin-bottom: 2rem;
+  }
+  .pdot {
+    width: 8px; height: 8px;
+    border-radius: 50%;
+    background: rgba(255,255,255,.15);
+    transition: all .3s ease;
+  }
+  .pdot.active { background: var(--primary); width: 22px; border-radius: 4px; }
+  .pdot.done   { background: var(--success); }
+
+  /* Glass card */
+  .reg-card {
+    background: var(--glass-heavy);
+    backdrop-filter: var(--blur-heavy);
+    -webkit-backdrop-filter: var(--blur-heavy);
+    border: 1px solid var(--glass-border);
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-lg);
+    padding: 2.5rem 2.5rem;
+    transition: transform var(--t), box-shadow var(--t);
+  }
+  .reg-card:hover { transform: translateY(-4px); box-shadow: var(--shadow-hover); }
+
+  .reg-form-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1rem 1.25rem;
+    margin-bottom: 1.5rem;
+  }
+  @media (max-width: 560px) { .reg-form-grid { grid-template-columns: 1fr; } }
+  .full-col { grid-column: 1 / -1; }
+
+  .float-field {
+    position: relative;
+  }
+  .float-field input {
+    width: 100%;
+    padding: 1.1rem 1rem .5rem;
+    background: rgba(255,255,255,.07);
+    backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px);
+    border: 1.5px solid rgba(255,255,255,.12);
+    border-radius: var(--radius);
+    font-size: .9rem;
+    color: var(--text);
+    outline: none;
+    transition: border-color var(--t), box-shadow var(--t), background var(--t);
+    font-family: inherit;
+    box-shadow: 0 2px 10px rgba(0,0,0,.25) inset;
+  }
+  .float-field input:focus {
+    background: rgba(255,255,255,.10);
+    border-color: var(--primary);
+    box-shadow: 0 0 0 3px rgba(77,168,255,.18);
+  }
+  .float-field label {
+    position: absolute;
+    top: 50%; left: 1rem;
+    transform: translateY(-50%);
+    font-size: .9rem;
+    color: var(--text-light);
+    pointer-events: none;
+    transition: top .2s ease, font-size .2s ease, color .2s ease, transform .2s ease;
+    font-weight: 500;
+  }
+  .float-field input:focus + label,
+  .float-field input:not(:placeholder-shown) + label {
+    top: .45rem;
+    transform: translateY(0);
+    font-size: .68rem;
+    font-weight: 700;
+    color: var(--primary);
+    text-transform: uppercase;
+    letter-spacing: .4px;
+  }
+  .float-field input::placeholder { color: transparent; }
+
+  .reg-footer {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 1rem;
+    padding-top: .5rem;
+    border-top: 1px solid rgba(255,255,255,.08);
+  }
+  .reg-footer-note { font-size: .82rem; color: var(--text-muted); }
+  .reg-footer-note a { color: var(--primary); text-decoration: none; font-weight: 600; }
+  .reg-footer-note a:hover { text-decoration: underline; }
+
+  /* Success state */
+  .success-state {
+    text-align: center;
+    padding: 3rem 2rem;
+  }
+  .success-circle {
+    width: 80px; height: 80px;
+    background: linear-gradient(145deg, rgba(52,199,89,.15), rgba(52,199,89,.25));
+    border: 1px solid rgba(52,199,89,.3);
+    border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    margin: 0 auto 1.5rem;
+    box-shadow: 0 4px 20px rgba(52,199,89,.2);
+    animation: successPop .5s cubic-bezier(0.34,1.56,0.64,1) both;
+  }
+  @keyframes successPop { from { transform: scale(0); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+  .success-circle svg { width: 36px; height: 36px; color: var(--success); }
+  .success-state h2 { font-size: 1.4rem; font-weight: 700; color: var(--text); margin-bottom: .5rem; }
+  .success-state p  { font-size: .9rem; color: var(--text-muted); margin-bottom: 1.5rem; }
+</style>
+{% endblock %}
+
+{% block outer %}
+<div class="reg-shell">
+  <div class="reg-container">
+
+    <div class="reg-header reveal">
+      <div class="reg-icon-wrap">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M16 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
+          <circle cx="12" cy="7" r="4"/>
+          <line x1="20" y1="8" x2="20" y2="14"/><line x1="23" y1="11" x2="17" y2="11"/>
+        </svg>
+      </div>
+      <h1>Create your account</h1>
+      <p>Join VitaHeart to access the cardiovascular risk prediction tool.</p>
+    </div>
+
+    <div class="reg-card reveal" data-delay="100">
+
+      {% if success %}
+      <div class="success-state">
+        <div class="success-circle">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
+        </div>
+        <h2>Account Created!</h2>
+        <p>Your VitaHeart account is ready. Sign in to start your risk assessment.</p>
+        <a href="{% url 'Login' %}" class="btn btn-primary btn-lg">
+          <span class="btn-text">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="15" height="15"><path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"/><polyline points="10 17 15 12 10 7"/><line x1="15" y1="12" x2="3" y2="12"/></svg>
+            Sign In Now
+          </span>
+          <span class="btn-spinner"><span class="spinner-ring"></span></span>
+        </a>
+      </div>
+
+      {% else %}
+
+      {% if error %}
+      <div class="alert alert-error" style="margin-bottom:1.5rem;">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="15" height="15" style="flex-shrink:0"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+        {{ error }}
+      </div>
+      {% endif %}
+
+      <form method="post" action="{% url 'Signup' %}">
+        {% csrf_token %}
+        <div class="reg-form-grid">
+
+          <div class="float-field full-col">
+            <input type="text" id="username" name="username" placeholder="Username" required autocomplete="username"/>
+            <label for="username">Username</label>
+          </div>
+
+          <div class="float-field full-col">
+            <input type="password" id="password" name="password" placeholder="Password" required autocomplete="new-password"/>
+            <label for="password">Password</label>
+          </div>
+
+          <div class="float-field">
+            <input type="text" id="contact" name="contact" placeholder="Contact Number" required inputmode="numeric"/>
+            <label for="contact">Contact Number</label>
+          </div>
+
+          <div class="float-field">
+            <input type="email" id="email" name="email" placeholder="Email Address" required autocomplete="email"/>
+            <label for="email">Email Address</label>
+          </div>
+
+          <div class="float-field full-col">
+            <input type="text" id="address" name="address" placeholder="Address" required/>
+            <label for="address">Address</label>
+          </div>
+
+        </div>
+
+        <div class="reg-footer">
+          <p class="reg-footer-note">
+            Already have an account? <a href="{% url 'Login' %}">Sign in</a>
+          </p>
+          <button type="submit" class="btn btn-primary btn-lg">
+            <span class="btn-text">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="15" height="15"><polyline points="20 6 9 17 4 12"/></svg>
+              Create Account
+            </span>
+            <span class="btn-spinner"><span class="spinner-ring"></span> Creating…</span>
+          </button>
+        </div>
+
+      </form>
+      {% endif %}
+
+    </div>
+  </div>
+</div>
+{% endblock %}

@@ -1,76 +1,293 @@
-{% load static %}
-<html>
-<head>
-<title>Heart Disease Prediction</title>
-<meta http-equiv="content-type" content="text/html; charset=utf-8" />
-<link rel="stylesheet" type="text/css" href="{% static 'style.css' %}"/>
- <script LANGUAGE="Javascript" >
-function validate(){
-	var x=document.forms["f1"]["username"].value;
-	var y=document.forms["f1"]["password"].value;
-	
-	if(x == null || x==""){
-		window.alert("Username must be enter");
-		document.f1.username.focus();
-		return false;
-	}
-	if(y == null || y==""){
-		window.alert("Password must be enter");
-		document.f1.password.focus();
-		return false;
-	}
-	return true;
-}
-		
-	
-	</script>
-</head>
-<body>
-<div id="wrapper">
-	<div id="header">
-		<div id="logo">
-			<center><font size="4" color="yellow">Design And Implementing Heart Disease Prediction
-Using Naives Bayesian</font></center>
-		</div>
-		<div id="slogan">
-			
-		</div>
-	</div>
-	<div id="menu">
-		<ul><center>
-	  <li><a href="{% url 'index' %}">Home</a></li>
-      <li><a href="{% url 'Login' %}">Login</a></li>
-      <li><a href="{% url 'Register' %}">Register Here</a></li>
-			
-		</center></ul>
-<br class="clearfix" />
-				</div>
-			
-	<div id="splash">
-		<img class="pic" src="{% static 'images/investor.jpg' %}" width="870" height="230" alt="" />
-	</div>	
-			<center>
-<form name="f1" method="post" action={% url 'UserLogin' %} OnSubmit="return validate()">
-	{% csrf_token %}<br/>
-   <h3><b>User Login Screen</b></h3>
-   
-	<font size="" color="black"><center>{{ data }}</center></font>
-						
-						<table align="center" width="80" >
-			 <tr><td><b>Username</b></td><td><input type="text" name="username" style="font-family: Comic Sans MS" size="30"/></td></tr>
-         
-		  
-		<tr><td><b>Password</b></td><td><input type="password" name="password" style="font-family: Comic Sans MS" size="30"/></td></tr>
+{% extends 'base.html' %}
+{% block title %}Sign In{% endblock %}
 
-		
-		 
-			<tr><td></td><td><input type="submit" value="Login">
-			</td>
-			</table>
-				</div>	
-					
-				</div>
-				<br/><br/><br/><br/><br/><br/>
-				
-	</body>
-</html>
+{% block nav %}
+<li><a href="{% url 'index' %}">Home</a></li>
+<li><a href="{% url 'Login' %}" class="active">Login</a></li>
+<li><a href="{% url 'Register' %}" class="cta">Register</a></li>
+{% endblock %}
+
+{% block extra_css %}
+<style>
+  .split-screen {
+    flex: 1;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    min-height: calc(100vh - 60px - 52px);
+    animation: pageIn 380ms cubic-bezier(0.4,0,0.2,1) both;
+  }
+  @media (max-width: 768px) {
+    .split-screen { grid-template-columns: 1fr; }
+    .login-deco { display: none; }
+  }
+
+  /* ── Left decorative panel ── */
+  .login-deco {
+    background: linear-gradient(145deg, #1a2a4a 0%, #0f1e38 60%, #1a0a2e 100%);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 2.5rem;
+    padding: 3rem 2.5rem;
+    position: relative;
+    overflow: hidden;
+  }
+  .login-deco::before {
+    content: '';
+    position: absolute; inset: 0;
+    background:
+      radial-gradient(ellipse 60% 50% at 30% 30%, rgba(0,113,227,.35) 0%, transparent 60%),
+      radial-gradient(ellipse 50% 40% at 75% 70%, rgba(168,85,247,.25) 0%, transparent 60%);
+  }
+  /* Floating glass orbs on deco panel */
+  .deco-orb {
+    position: absolute;
+    border-radius: 50%;
+    border: 1px solid rgba(255,255,255,.08);
+    background: rgba(255,255,255,.03);
+    backdrop-filter: blur(2px);
+  }
+  .deco-orb-1 { width: 180px; height: 180px; top: -40px; left: -40px; }
+  .deco-orb-2 { width: 120px; height: 120px; bottom: 80px; right: -30px; }
+  .deco-orb-3 { width: 80px;  height: 80px;  top: 45%; left: 5%; }
+
+  .deco-content { position: relative; z-index: 1; text-align: center; }
+  .deco-brand {
+    font-size: 1.3rem; font-weight: 700; color: #fff;
+    display: flex; align-items: center; justify-content: center; gap: .6rem;
+    margin-bottom: 2.5rem;
+    letter-spacing: -.3px;
+  }
+  .deco-brand .brand-icon {
+    width: 36px; height: 36px;
+    background: linear-gradient(145deg, rgba(255,100,100,.3), rgba(255,59,48,.5));
+    border: 1px solid rgba(255,255,255,.15);
+    border-radius: 10px;
+    display: flex; align-items: center; justify-content: center;
+    color: #fff;
+    box-shadow: 0 4px 16px rgba(255,59,48,.25);
+  }
+  .deco-brand .brand-icon svg { width: 18px; height: 18px; }
+
+  /* SVG animated heart */
+  .deco-heart-wrap {
+    width: 160px; height: 145px;
+    margin: 0 auto 2rem;
+    position: relative;
+  }
+  .deco-heart-svg {
+    width: 100%; height: 100%;
+    filter: drop-shadow(0 12px 28px rgba(255,59,48,.45));
+    animation: heartPulse 1.5s ease-in-out infinite;
+    transform-origin: center bottom;
+  }
+  @keyframes heartPulse {
+    0%,100% { transform: scale(1);    }
+    15%      { transform: scale(1.13); }
+    30%      { transform: scale(1.04); }
+    45%      { transform: scale(1.10); }
+    60%      { transform: scale(1);    }
+  }
+
+  .deco-tagline {
+    color: rgba(255,255,255,.75);
+    font-size: .95rem;
+    line-height: 1.7;
+    max-width: 280px;
+    margin: 0 auto;
+  }
+  .deco-tagline strong { color: #fff; }
+
+  .deco-pills {
+    display: flex; gap: .6rem; flex-wrap: wrap; justify-content: center; margin-top: 1.5rem;
+  }
+  .deco-pill {
+    padding: .28rem .75rem;
+    background: rgba(255,255,255,.08);
+    border: 1px solid rgba(255,255,255,.12);
+    border-radius: 99px;
+    font-size: .73rem;
+    color: rgba(255,255,255,.65);
+    backdrop-filter: blur(4px);
+  }
+
+  /* ── Right form panel ── */
+  .login-form-panel {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 2.5rem 2rem;
+    background: rgba(12,14,24,0.65);
+    backdrop-filter: blur(28px);
+    -webkit-backdrop-filter: blur(28px);
+  }
+  .login-form-box {
+    width: 100%; max-width: 380px;
+  }
+  .form-header { margin-bottom: 2rem; }
+  .form-header h1 { font-size: 1.75rem; font-weight: 700; letter-spacing: -.4px; color: var(--text); margin-bottom: .35rem; }
+  .form-header p  { font-size: .87rem; color: var(--text-muted); }
+
+  .float-field {
+    position: relative;
+    margin-bottom: 1.25rem;
+  }
+  .float-field input {
+    width: 100%;
+    padding: 1.1rem 1rem .5rem;
+    background: rgba(255,255,255,.07);
+    backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px);
+    border: 1.5px solid rgba(255,255,255,.12);
+    border-radius: var(--radius);
+    font-size: .95rem;
+    color: var(--text);
+    outline: none;
+    transition: border-color var(--t), box-shadow var(--t), background var(--t);
+    font-family: inherit;
+    box-shadow: 0 2px 10px rgba(0,0,0,.25) inset;
+  }
+  .float-field input:focus {
+    background: rgba(255,255,255,.10);
+    border-color: var(--primary);
+    box-shadow: 0 0 0 3px rgba(77,168,255,.18);
+  }
+  .float-field label {
+    position: absolute;
+    top: 50%; left: 1rem;
+    transform: translateY(-50%);
+    font-size: .9rem;
+    color: var(--text-light);
+    pointer-events: none;
+    transition: top .2s ease, font-size .2s ease, color .2s ease, transform .2s ease;
+    font-weight: 500;
+  }
+  .float-field input:focus + label,
+  .float-field input:not(:placeholder-shown) + label {
+    top: .48rem;
+    transform: translateY(0);
+    font-size: .71rem;
+    font-weight: 600;
+    color: var(--primary);
+    text-transform: uppercase;
+    letter-spacing: .4px;
+  }
+  .float-field input::placeholder { color: transparent; }
+
+  .submit-btn-wrap { margin-top: .5rem; }
+
+  .divider-line {
+    display: flex; align-items: center; gap: .75rem;
+    margin: 1.5rem 0;
+    color: var(--text-light); font-size: .78rem;
+  }
+  .divider-line::before, .divider-line::after {
+    content: ''; flex: 1; height: 1px;
+    background: rgba(255,255,255,.08);
+  }
+</style>
+{% endblock %}
+
+{% block outer %}
+<div class="split-screen">
+
+  <!-- Left decorative panel -->
+  <div class="login-deco">
+    <div class="deco-orb deco-orb-1"></div>
+    <div class="deco-orb deco-orb-2"></div>
+    <div class="deco-orb deco-orb-3"></div>
+    <div class="deco-content">
+      <div class="deco-brand">
+        <span class="brand-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/>
+          </svg>
+        </span>
+        VitaHeart
+      </div>
+
+      <div class="deco-heart-wrap">
+        <svg class="deco-heart-svg" viewBox="0 0 100 90" xmlns="http://www.w3.org/2000/svg">
+          <defs>
+            <linearGradient id="hg" x1="0" y1="0" x2="1" y2="1">
+              <stop offset="0%"   stop-color="#ff6b8a"/>
+              <stop offset="50%"  stop-color="#ff3355"/>
+              <stop offset="100%" stop-color="#c0392b"/>
+            </linearGradient>
+            <linearGradient id="hg2" x1="0" y1="0" x2="0" y2="1">
+              <stop offset="0%" stop-color="rgba(255,255,255,.25)"/>
+              <stop offset="100%" stop-color="rgba(255,255,255,0)"/>
+            </linearGradient>
+          </defs>
+          <path fill="url(#hg)"
+            d="M50 85 C22 67 2 52 2 30 A23 23 0 0 1 48 18 A23 23 0 0 1 98 30 C98 52 78 67 50 85Z"/>
+          <path fill="url(#hg2)" opacity=".5"
+            d="M50 85 C22 67 2 52 2 30 A23 23 0 0 1 48 18 A23 23 0 0 1 98 30 C98 52 78 67 50 85Z"/>
+        </svg>
+      </div>
+
+      <p class="deco-tagline">
+        <strong>Heart disease affects millions.</strong><br/>
+        Our AI-powered tool helps predict risk from clinical parameters — instantly and accurately.
+      </p>
+      <div class="deco-pills">
+        <span class="deco-pill">Naïve Bayesian</span>
+        <span class="deco-pill">SVM Classifier</span>
+        <span class="deco-pill">UCI Dataset</span>
+        <span class="deco-pill">~85% Accuracy</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Right form panel -->
+  <div class="login-form-panel">
+    <div class="login-form-box">
+      <div class="form-header">
+        <h1>Welcome back</h1>
+        <p>Sign in to your VitaHeart account to continue.</p>
+      </div>
+
+      {% if error %}
+      <div class="alert alert-error">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="15" height="15" style="flex-shrink:0"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+        {{ error }}
+      </div>
+      {% endif %}
+
+      <form method="post" action="{% url 'UserLogin' %}">
+        {% csrf_token %}
+
+        <div class="float-field">
+          <input type="text" id="username" name="username" placeholder="Username, Email or Phone" autocomplete="username" required/>
+          <label for="username">Username, Email or Phone</label>
+        </div>
+
+        <div class="float-field">
+          <input type="password" id="password" name="password" placeholder="Password" autocomplete="current-password" required/>
+          <label for="password">Password</label>
+        </div>
+
+        <div class="submit-btn-wrap">
+          <button type="submit" class="btn btn-primary btn-lg btn-full">
+            <span class="btn-text">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="15" height="15"><path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"/><polyline points="10 17 15 12 10 7"/><line x1="15" y1="12" x2="3" y2="12"/></svg>
+              Sign In
+            </span>
+            <span class="btn-spinner"><span class="spinner-ring"></span> Signing in…</span>
+          </button>
+        </div>
+      </form>
+
+      <div class="divider-line">or</div>
+
+      <div class="auth-footer-link">
+        Don't have an account? <a href="{% url 'Register' %}">Create one for free</a>
+      </div>
+      <div class="auth-footer-link" style="margin-top:.6rem;">
+        <a href="{% url 'index' %}" style="color:var(--text-light);font-size:.78rem;">&larr; Back to Home</a>
+      </div>
+    </div>
+  </div>
+
+</div>
+{% endblock %}

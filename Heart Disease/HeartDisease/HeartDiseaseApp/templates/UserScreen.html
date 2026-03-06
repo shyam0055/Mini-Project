@@ -1,68 +1,142 @@
-{% load static %}
-<html>
-<head>
-<title>Heart Disease Prediction</title>
-<meta http-equiv="content-type" content="text/html; charset=utf-8" />
-<link rel="stylesheet" type="text/css" href="{% static 'style.css' %}"/>
-</head>
-<body>
-<div id="wrapper">
-	<div id="header">
-		<div id="logo">
-			<center><font size="4" color="yellow">Design And Implementing Heart Disease Prediction
-Using Naives Bayesian</font></center>
-		</div>
-		<div id="slogan">
-			
-		</div>
-	</div>
-	<div id="menu">
-		<ul><center>
-	  <li><a href="{% url 'Predict' %}">Predict Your Heart Condition</a></li>
-      <li><a href="{% url 'index' %}">Logout</a></li>
-			
-		</center></ul>
-		<br class="clearfix" />
-	</div>
-	<div id="splash">
-		<img class="pic" src="{% static 'images/investor.jpg' %}" width="870" height="230" alt="" />
-	</div>
-	<br/><br/>
-			<center><font size="3" color="red">{{ data|safe }}</font></center>
-			<br/><br/>
-	<p align="justify"><font size="3" style="font-family: Comic Sans MS" color='black'>
-		Abstract-Data mining, a great developing technique that
-revolves around exploring and digging out significant information
-from massive collection of data which can be further beneficial in
-examining and drawing out patterns for making business related
-decisions. Talking about the Medical domain, implementation of
-data mining in this field can yield in discovering and withdrawing
-valuable patterns and information which can prove beneficial in
-performing clinical diagnosis. The research focuses on heart
-disease diagnosis by considering previous data and information.
-To achieve this SHDP (Smart Heart Disease Prediction) is built via
-Navies Bayesian in order to predict risk factors concerning heart
-disease.</p><p align="justify"><font size="3" style="font-family: Comic Sans MS" color='black'>The speedy advancement of technology has led to
-remarkable rise in mobile health technology that being one of the
-web application. The required data is assembled in a standardized
-form. For predicting the chances of heart disease in a patient, the
-following attributes are being fetched from the medical profiles,
-these include: age, BP, cholesterol, sex, blood sugar etc... The
-collected attributes acts as input for the Navies Bayesian
-classification for predicting heart disease. The dataset utilized is
-split into two sections, 80% dataset is utilized for training and rest
-20% is utilized for testing.</p><p align="justify"><font size="3" style="font-family: Comic Sans MS" color='black'> The proposed approach includes
-following stages: dataset collection, user registration and login
-(Application based), classification via Navies Bayesian, prediction
-and secure data transfer by employing AES (Advanced
-Encryption Standard). Thereafter result is produced. The
-research elaborates and presents multiple knowledge abstraction
-techniques by making use of data mining methods which are
-adopted for heart disease prediction. The output reveals that the
-established diagnostic system effectively assists in predicting risk
-factors concerning heart diseases.
+{% extends 'base.html' %}
+{% block title %}Dashboard{% endblock %}
 
-</p>
-<br/><br/><br/><br/><br/><br/><br/><br/>
-</body>
-</html>
+{% block nav %}
+<li><a href="{% url 'Predict' %}">Run Prediction</a></li>
+<li><a href="{% url 'History' %}">History</a></li>
+<li><a href="{% url 'ChangePassword' %}">Profile</a></li>
+<li><a href="{% url 'index' %}" class="cta">Logout</a></li>
+{% endblock %}
+
+{% block extra_css %}
+<style>
+  .welcome-banner {
+    background: var(--glass);
+    backdrop-filter: var(--blur); -webkit-backdrop-filter: var(--blur);
+    border: 1px solid var(--glass-border);
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-lg);
+    padding: 2.5rem 2.5rem;
+    margin-bottom: 1.5rem;
+    position: relative;
+    overflow: hidden;
+    transition: transform var(--t), box-shadow var(--t);
+  }
+  .welcome-banner:hover { transform: translateY(-4px); box-shadow: var(--shadow-hover); }
+  .welcome-banner::before {
+    content: '';
+    position: absolute; top: 0; left: 0; right: 0; height: 3px;
+    background: linear-gradient(90deg, #0ea5e9, #0071e3, #a855f7);
+  }
+  /* Decorative orb inside banner */
+  .welcome-banner::after {
+    content: '';
+    position: absolute;
+    width: 220px; height: 220px;
+    top: -60px; right: -50px;
+    background: radial-gradient(circle, rgba(0,113,227,.12) 0%, transparent 70%);
+    border-radius: 50%;
+    pointer-events: none;
+  }
+  .welcome-greeting {
+    font-size: .75rem; font-weight: 700; color: var(--primary);
+    text-transform: uppercase; letter-spacing: .8px; margin-bottom: .4rem;
+  }
+  .welcome-title { font-size: 1.7rem; font-weight: 700; letter-spacing: -.4px; margin-bottom: .5rem; }
+  .welcome-desc  { font-size: .9rem; color: var(--text-muted); max-width: 500px; line-height: 1.75; }
+  .welcome-actions { display: flex; gap: .75rem; flex-wrap: wrap; margin-top: 1.75rem; }
+
+  /* Feature cards */
+  .feature-grid { display: grid; grid-template-columns: repeat(3,1fr); gap: 1.1rem; margin-bottom: 1.5rem; }
+  @media (max-width: 700px) { .feature-grid { grid-template-columns: 1fr; } }
+  .feature-card {
+    background: var(--glass);
+    backdrop-filter: var(--blur); -webkit-backdrop-filter: var(--blur);
+    border: 1px solid var(--glass-border);
+    border-radius: var(--radius);
+    box-shadow: var(--shadow-md);
+    padding: 1.5rem 1.4rem;
+    transition: transform var(--t-spring), box-shadow var(--t);
+  }
+  .feature-card:hover { transform: translateY(-5px); box-shadow: var(--shadow-hover); }
+  .feature-icon {
+    width: 40px; height: 40px;
+    border-radius: 10px;
+    display: flex; align-items: center; justify-content: center;
+    margin-bottom: .9rem;
+    box-shadow: 0 2px 8px rgba(0,0,0,.25), 0 1px 0 rgba(255,255,255,.10) inset;
+  }
+  .feature-icon.blue   { background: linear-gradient(145deg,rgba(0,113,227,.12),rgba(0,113,227,.22)); color:var(--primary); }
+  .feature-icon.green  { background: linear-gradient(145deg,rgba(52,199,89,.12),rgba(52,199,89,.22)); color:var(--success); }
+  .feature-icon.purple { background: linear-gradient(145deg,rgba(168,85,247,.12),rgba(168,85,247,.22)); color:#a855f7; }
+  .feature-icon svg { width: 18px; height: 18px; }
+  .feature-card h3 { font-size: .9rem; font-weight: 700; margin-bottom: .35rem; }
+  .feature-card p  { font-size: .82rem; color: var(--text-muted); line-height: 1.65; }
+</style>
+{% endblock %}
+
+{% block content %}
+
+<div class="welcome-banner reveal">
+  <div class="welcome-greeting">Welcome back</div>
+  <div class="welcome-title">Hello, {{ username }}!</div>
+  <p class="welcome-desc">
+    You're now signed in to VitaHeart. Use the prediction tool to enter clinical parameters
+    and receive an instant cardiovascular risk assessment using two ML classifiers.
+  </p>
+  <div class="welcome-actions">
+    <a href="{% url 'Predict' %}" class="btn btn-primary btn-lg">
+      <span class="btn-text">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="15" height="15"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+        Run Prediction
+      </span>
+      <span class="btn-spinner"><span class="spinner-ring"></span> Loading…</span>
+    </a>
+<a href="{% url 'index' %}" class="btn btn-ghost btn-lg">
+      <span class="btn-text">Logout</span>
+      <span class="btn-spinner"><span class="spinner-ring"></span></span>
+    </a>
+  </div>
+</div>
+
+<div class="feature-grid">
+  <div class="feature-card reveal">
+    <div class="feature-icon blue">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
+    </div>
+    <h3>13 Clinical Parameters</h3>
+    <p>The tool uses age, sex, chest pain type, blood pressure, cholesterol, ECG, max heart rate and 6 more indicators.</p>
+  </div>
+
+  <div class="feature-card reveal" data-delay="100">
+    <div class="feature-icon green">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+    </div>
+    <h3>Instant Results</h3>
+    <p>Predictions generated in seconds using Naïve Bayesian and SVM classifiers trained on the UCI Heart Disease dataset.</p>
+  </div>
+
+  <div class="feature-card reveal" data-delay="200">
+    <div class="feature-icon purple">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 20V10"/><path d="M12 20V4"/><path d="M6 20v-6"/></svg>
+    </div>
+    <h3>Accuracy Comparison</h3>
+    <p>Results include side-by-side accuracy visualization for both algorithms so you can compare model performance.</p>
+  </div>
+</div>
+
+<div class="card reveal">
+  <div class="section-label">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="14" height="14"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4M12 8h.01"/></svg>
+    Educational Disclaimer
+  </div>
+  <p style="font-size:.875rem;color:var(--text-muted);line-height:1.85;margin:0;">
+    VitaHeart uses <strong style="color:var(--text)">Naïve Bayesian</strong> and <strong style="color:var(--text)">SVM</strong>
+    classifiers trained on the UCI Heart Disease dataset (303 records, 80/20 train-test split).
+    Predictions indicate the <em>statistical likelihood</em> of cardiovascular disease based on the entered parameters.
+    This tool is intended for <strong style="color:var(--text)">educational and research purposes only</strong>
+    and does not constitute medical advice. Always consult a qualified healthcare professional for clinical decisions.
+  </p>
+</div>
+
+{% endblock %}

@@ -1,154 +1,299 @@
-{% load static %}
-<html>
-<head>
-<title>Heart Disease Prediction</title>
-<meta http-equiv="content-type" content="text/html; charset=utf-8" />
-<link rel="stylesheet" type="text/css" href="{% static 'style.css' %}"/>
- <script LANGUAGE="Javascript" >
-function validate(){
-	var x=document.forms["f1"]["username"].value;
-	var y=document.forms["f1"]["password"].value;
-	var c=document.forms["f1"]["contact"].value;
-	var e=document.forms["f1"]["email"].value;
-	var a=document.forms["f1"]["address"].value;
-	if(x == null || x==""){
-		window.alert("Username must be enter");
-		document.f1.username.focus();
-		return false;
-	}
-	if(y == null || y==""){
-		window.alert("Password must be enter");
-		document.f1.password.focus();
-		return false;
-	}
-	if(c == null || c==""){
-		window.alert("Contact No must be enter");
-		document.f1.contact.focus();
-		return false;
-	}
-	if(isNaN(c)){
-		window.alert("Please enter valid contact number");
-		document.f1.contact.focus();
-		return false;
-	}
-	if(e == null || e==""){
-		window.alert("Email ID must be enter");
-		document.f1.email.focus();
-		return false;
-	}
-	var filter = /^([a-zA-Z0-9_\.\-])+\@(gmail+\.)+(com)+$/;
-	if (!filter.test(e)) {
-		window.alert('enter a valid email address');
-		document.f1.email.focus();
-		return false;
-	}
-	if(a == null || a==""){
-		window.alert("Address must be enter");
-		document.f1.address.focus();
-		return false;
-	}
-	return true;
-}
-		
-	
-	</script>
-</head>
-<body>
-<div id="wrapper">
-	<div id="header">
-		<div id="logo">
-			<center><font size="4" color="yellow">Design And Implementing Heart Disease Prediction
-Using Naives Bayesian</font></center>
-		</div>
-		<div id="slogan">
-			
-		</div>
-	</div>
-	<div id="menu">
-		<ul><center>
-	  <li><a href="{% url 'Predict' %}">Predict Your Heart Condition</a></li>
-      <li><a href="{% url 'index' %}">Logout</a></li>
-			
-		</center></ul>
-<br class="clearfix" />
-				</div>
-			
-	<div id="splash">
-		<img class="pic" src="{% static 'images/investor.jpg' %}" width="870" height="230" alt="" />
-	</div>	
-			<center>
-<form name="f1" method="post" action={% url 'PredictHeartCondition' %} OnSubmit="return validate()">
-	{% csrf_token %}<br/>
-   <h3><b>Input Heart Condition Values Screen</b></h3>
-   
-	<font size="" color="black"><center>{{ data }}</center></font>
-						
-						<table align="center" width="80" >
-			 <tr><td><b>Age</b></td><td><input type="text" name="age" style="font-family: Comic Sans MS" size="10"/></td></tr>
-         
-		  
-		<tr><td><b>Gender (M:1,F:0)</b></td><td><select name="gender">
-		<option value="1">Male</option>
-		<option value="0">Female</option>
-		</td></tr>
+{% extends 'base.html' %}
+{% block title %}Run Prediction{% endblock %}
 
-		<tr><td><b>Chest&nbsp;Pain&nbsp;Type</b></td><td><select name="cp">
-		<option value="0">typical angina</option>
-		<option value="1">atypical angina</option>
-		<option value="2">non-anginal pain</option>
-		<option value="3">asymptomatic</option>
-		</td></tr>
+{% block nav %}
+<li><a href="{% url 'Predict' %}" class="active">Run Prediction</a></li>
+<li><a href="{% url 'index' %}" class="cta">Logout</a></li>
+{% endblock %}
 
-		
-		<tr><td><b>Resting&nbsp;Blood&nbsp;Pressure</b></td><td><input type="text" name="trestbps" style="font-family: Comic Sans MS" size="15"/></td></tr>
+{% block wrap_class %}medium{% endblock %}
 
-		<tr><td><b>Cholestoral</b></td><td><input type="text" name="chol" style="font-family: Comic Sans MS" size="15"/></td></tr>
+{% block extra_css %}
+<style>
+  .predict-header { margin-bottom: 1.75rem; }
+  .predict-header h1 { font-size: 1.4rem; font-weight: 700; letter-spacing: -.35px; }
+  .predict-header p  { font-size: .875rem; color: var(--text-muted); margin-top: .25rem; }
 
-		<tr><td><b>Fasting&nbsp;Blood&nbsp;Sugar (T:1,F:0)</b></td><td><select name="fbs">
-		<option value="1">True</option>
-		<option value="0">False</option>
-		</td></tr>
+  /* Step indicator */
+  .steps-bar {
+    display: flex; align-items: center;
+    gap: 0; margin-bottom: 1.5rem;
+  }
+  .step-item {
+    display: flex; align-items: center; gap: .6rem; flex: 1;
+    font-size: .75rem; font-weight: 600; color: var(--text-light);
+    position: relative;
+  }
+  .step-item:not(:last-child)::after {
+    content: '';
+    flex: 1;
+    height: 2px;
+    background: rgba(255,255,255,.10);
+    margin: 0 .5rem;
+    border-radius: 1px;
+  }
+  .step-num {
+    width: 28px; height: 28px;
+    border-radius: 50%;
+    background: rgba(255,255,255,.08);
+    display: flex; align-items: center; justify-content: center;
+    font-size: .75rem; font-weight: 700;
+    flex-shrink: 0;
+    transition: background var(--t), color var(--t), box-shadow var(--t);
+  }
+  .step-item.active .step-num {
+    background: linear-gradient(145deg,#1a8bff,#0071e3);
+    color: #fff;
+    box-shadow: 0 3px 10px rgba(0,113,227,.35);
+  }
+  .step-item.active { color: var(--primary); }
+  .step-label { display: none; }
+  @media (min-width: 600px) { .step-label { display: block; } }
 
-		<tr><td><b>Resting&nbsp;Electrocardiographic&nbsp;Results</b></td><td><select name="restecg">
-		<option value="0">Normal</option>
-		<option value="1">Having ST-T Wave Abnormality</option>
-		<option value="2">Showing Probable</option>
-		</td></tr>
+  /* Form sections */
+  .predict-section {
+    background: var(--glass);
+    backdrop-filter: var(--blur); -webkit-backdrop-filter: var(--blur);
+    border: 1px solid var(--glass-border);
+    border-radius: var(--radius);
+    box-shadow: var(--shadow-md);
+    padding: 1.6rem 1.85rem;
+    margin-bottom: 1.15rem;
+    transition: transform var(--t), box-shadow var(--t);
+  }
+  .predict-section:hover { transform: translateY(-3px); box-shadow: var(--shadow-hover); }
 
-		<tr><td><b>Max&nbsp;HeartRate&nbsp;Achieved</b></td><td><input type="text" name="thalach" style="font-family: Comic Sans MS" size="15"/></td></tr>
-		
-		<tr><td><b>Exercise&nbsp;Induced&nbsp;Angina (Y:1,N:0)</b></td><td><select name="exang">
-		<option value="1">Yes</option>
-		<option value="0">No</option>
-		</td></tr>
+  .submit-row {
+    display: flex; align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap; gap: .75rem;
+    margin-top: 1.5rem;
+  }
+  .submit-note { font-size: .78rem; color: var(--text-light); }
+</style>
+{% endblock %}
 
-		<tr><td><b>Old&nbsp;Peak</b></td><td><input type="text" name="oldpeak" style="font-family: Comic Sans MS" size="15"/></td></tr>
+{% block content %}
 
-		<tr><td><b>Slope&nbsp;Peak&nbsp;Exercise</b></td><td><select name="slope">
-		<option value="1">Upsloping</option>
-		<option value="2">Flat</option>
-		<option value="3">Downsloping</option>
-		</td></tr>
+<div class="predict-header reveal">
+  <h1>Heart Disease Risk Assessment</h1>
+  <p>Enter the patient's clinical parameters across three sections to generate a prediction.</p>
+</div>
 
-		<tr><td><b>Total&nbsp;Major&nbsp;Vessel</b></td><td><select name="ca">
-		<option value="0">0</option>
-		<option value="1">1</option>
-		<option value="2">2</option>
-		<option value="3">3</option>
-		</td></tr>
+<!-- Step bar -->
+<div class="steps-bar reveal" data-delay="100">
+  <div class="step-item active">
+    <span class="step-num">1</span>
+    <span class="step-label">Demographics</span>
+  </div>
+  <div class="step-item active">
+    <span class="step-num">2</span>
+    <span class="step-label">Vital Signs</span>
+  </div>
+  <div class="step-item active">
+    <span class="step-num">3</span>
+    <span class="step-label">Clinical Tests</span>
+  </div>
+</div>
 
-		<tr><td><b>Thal</b></td><td><select name="thal">
-		<option value="1">1</option>
-		<option value="2">2</option>
-		<option value="3">3</option>
-		</td></tr>
-         
-			<tr><td></td><td><input type="submit" value="Submit">
-			</td>
-			</table>
-				</div>	
-					
-				</div>
-				<br/><br/><br/><br/><br/><br/>
-	</body>
-</html>
+<form method="post" action="{% url 'PredictHeartCondition' %}">
+{% csrf_token %}
+
+<!-- Section 1 -->
+<div class="predict-section reveal" data-delay="150">
+  <div class="section-label">
+    <span class="step-badge">1</span>
+    Patient Demographics
+  </div>
+  <div class="grid-2">
+    <div class="form-group">
+      <label class="field-label" for="age">Age <span style="color:var(--danger)">*</span></label>
+      <input type="number" id="age" name="age" placeholder="e.g. 54" min="1" max="120" required/>
+      <span class="field-hint">Patient age in years</span>
+    </div>
+    <div class="form-group">
+      <label class="field-label" for="gender">Biological Sex <span style="color:var(--danger)">*</span></label>
+      <select id="gender" name="gender" required>
+        <option value="1">Male</option>
+        <option value="0">Female</option>
+      </select>
+    </div>
+  </div>
+</div>
+
+<!-- Section 2 -->
+<div class="predict-section reveal" data-delay="200">
+  <div class="section-label">
+    <span class="step-badge">2</span>
+    Vital Signs &amp; Blood Work
+  </div>
+  <div class="grid-2">
+    <div class="form-group">
+      <label class="field-label" for="trestbps">Resting Blood Pressure <span style="color:var(--danger)">*</span></label>
+      <input type="number" id="trestbps" name="trestbps" placeholder="e.g. 130" min="50" max="250" required/>
+      <span class="field-hint">mm Hg on admission</span>
+    </div>
+    <div class="form-group">
+      <label class="field-label" for="chol">Serum Cholesterol <span style="color:var(--danger)">*</span></label>
+      <input type="number" id="chol" name="chol" placeholder="e.g. 250" min="100" max="600" required/>
+      <span class="field-hint">mg/dl</span>
+    </div>
+    <div class="form-group">
+      <label class="field-label" for="fbs">Fasting Blood Sugar <span style="color:var(--danger)">*</span></label>
+      <select id="fbs" name="fbs" required>
+        <option value="1">True (&gt; 120 mg/dl)</option>
+        <option value="0">False (&le; 120 mg/dl)</option>
+      </select>
+    </div>
+    <div class="form-group">
+      <label class="field-label" for="thalach">Max Heart Rate <span style="color:var(--danger)">*</span></label>
+      <input type="number" id="thalach" name="thalach" placeholder="e.g. 150" min="60" max="220" required/>
+      <span class="field-hint">bpm achieved</span>
+    </div>
+  </div>
+</div>
+
+<!-- Section 3 -->
+<div class="predict-section reveal" data-delay="250">
+  <div class="section-label">
+    <span class="step-badge">3</span>
+    Clinical &amp; ECG Findings
+  </div>
+  <div class="grid-2">
+    <div class="form-group">
+      <label class="field-label" for="cp">Chest Pain Type <span style="color:var(--danger)">*</span></label>
+      <select id="cp" name="cp" required>
+        <option value="0">Typical Angina</option>
+        <option value="1">Atypical Angina</option>
+        <option value="2">Non-Anginal Pain</option>
+        <option value="3">Asymptomatic</option>
+      </select>
+    </div>
+    <div class="form-group">
+      <label class="field-label" for="restecg">Resting ECG Results <span style="color:var(--danger)">*</span></label>
+      <select id="restecg" name="restecg" required>
+        <option value="0">Normal</option>
+        <option value="1">ST-T Wave Abnormality</option>
+        <option value="2">Left Ventricular Hypertrophy</option>
+      </select>
+    </div>
+    <div class="form-group">
+      <label class="field-label" for="exang">Exercise-Induced Angina <span style="color:var(--danger)">*</span></label>
+      <select id="exang" name="exang" required>
+        <option value="1">Yes</option>
+        <option value="0">No</option>
+      </select>
+    </div>
+    <div class="form-group">
+      <label class="field-label" for="oldpeak">ST Depression (Oldpeak) <span style="color:var(--danger)">*</span></label>
+      <input type="number" id="oldpeak" name="oldpeak" placeholder="e.g. 1.5" step="0.1" min="0" max="10" required/>
+      <span class="field-hint">Induced by exercise vs. rest</span>
+    </div>
+    <div class="form-group">
+      <label class="field-label" for="slope">Slope of Peak ST Segment <span style="color:var(--danger)">*</span></label>
+      <select id="slope" name="slope" required>
+        <option value="1">Upsloping</option>
+        <option value="2">Flat</option>
+        <option value="3">Downsloping</option>
+      </select>
+    </div>
+    <div class="form-group">
+      <label class="field-label" for="ca">Major Vessels (Fluoroscopy) <span style="color:var(--danger)">*</span></label>
+      <select id="ca" name="ca" required>
+        <option value="0">0</option>
+        <option value="1">1</option>
+        <option value="2">2</option>
+        <option value="3">3</option>
+      </select>
+      <span class="field-hint">Number of vessels colored</span>
+    </div>
+    <div class="form-group">
+      <label class="field-label" for="thal">Thalassemia Status <span style="color:var(--danger)">*</span></label>
+      <select id="thal" name="thal" required>
+        <option value="1">Normal</option>
+        <option value="2">Fixed Defect</option>
+        <option value="3">Reversible Defect</option>
+      </select>
+    </div>
+  </div>
+</div>
+
+<div class="submit-row reveal" data-delay="300">
+  <span class="submit-note">All fields are required &middot; Results generated instantly</span>
+  <button type="submit" class="btn btn-primary btn-lg">
+    <span class="btn-text">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="15" height="15"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+      Analyze Risk
+    </span>
+    <span class="btn-spinner"><span class="spinner-ring"></span> Analyzing…</span>
+  </button>
+</div>
+
+</form>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+(function () {
+  const rules = {
+    age:      { min: 1,   max: 120,  label: 'Age' },
+    trestbps: { min: 50,  max: 250,  label: 'Resting Blood Pressure' },
+    chol:     { min: 100, max: 600,  label: 'Serum Cholesterol' },
+    thalach:  { min: 60,  max: 220,  label: 'Max Heart Rate' },
+    oldpeak:  { min: 0,   max: 10,   label: 'ST Depression' },
+  };
+
+  function showError(input, msg) {
+    clearError(input);
+    input.style.borderColor = 'var(--danger)';
+    const hint = document.createElement('span');
+    hint.className = 'field-hint validation-err';
+    hint.style.color = 'var(--danger)';
+    hint.textContent = msg;
+    input.parentNode.appendChild(hint);
+  }
+
+  function clearError(input) {
+    input.style.borderColor = '';
+    const old = input.parentNode.querySelector('.validation-err');
+    if (old) old.remove();
+  }
+
+  // Live validation
+  Object.keys(rules).forEach(name => {
+    const el = document.getElementById(name);
+    if (!el) return;
+    el.addEventListener('input', () => {
+      const v = parseFloat(el.value);
+      const r = rules[name];
+      if (el.value && (isNaN(v) || v < r.min || v > r.max)) {
+        showError(el, `${r.label} must be between ${r.min} and ${r.max}.`);
+      } else {
+        clearError(el);
+      }
+    });
+  });
+
+  // Submit guard
+  document.querySelector('form').addEventListener('submit', function (e) {
+    let valid = true;
+    Object.keys(rules).forEach(name => {
+      const el = document.getElementById(name);
+      if (!el) return;
+      const v = parseFloat(el.value);
+      const r = rules[name];
+      if (!el.value || isNaN(v) || v < r.min || v > r.max) {
+        showError(el, `${r.label} must be between ${r.min} and ${r.max}.`);
+        valid = false;
+      }
+    });
+    if (!valid) {
+      e.preventDefault();
+      document.querySelector('.validation-err')
+              ?.closest('.predict-section')
+              ?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+  });
+})();
+</script>
+{% endblock %}

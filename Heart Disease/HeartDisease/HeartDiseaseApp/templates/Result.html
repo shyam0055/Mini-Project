@@ -1,32 +1,383 @@
-{% load static %}
-<html>
-<head>
-<title>Heart Disease Prediction</title>
-<meta http-equiv="content-type" content="text/html; charset=utf-8" />
-<link rel="stylesheet" type="text/css" href="{% static 'style.css' %}"/>
-</head>
-<body>
-<div id="wrapper">
-	<div id="header">
-		<div id="logo">
-			<center><font size="4" color="yellow">Design And Implementing Heart Disease Prediction
-Using Naives Bayesian</font></center>
-		</div>
-		<div id="slogan">
-			
-		</div>
-	</div>
-	<div id="menu">
-		<ul><center>
-	  <li><a href="{% url 'Predict' %}">Predict Your Heart Condition</a></li>
-      <li><a href="{% url 'index' %}">Logout</a></li>
-			
-		</center></ul>
-		<br class="clearfix" />
-	</div>
-	<div id="splash">
-		<img class="pic" src="{% static 'images/investor.jpg' %}" width="870" height="230" alt="" />
-	</div>
-	<br/><br/>
-			<center><font size="3" color="red">{{ data|safe }}</font></center>
-			<br/><br/><br/><br/><br/><br/>
+{% extends 'base.html' %}
+{% block title %}Prediction Result{% endblock %}
+
+{% block nav %}
+<li><a href="{% url 'Predict' %}">Run Prediction</a></li>
+<li><a href="{% url 'History' %}">History</a></li>
+<li><a href="{% url 'ChangePassword' %}">Profile</a></li>
+<li><a href="{% url 'index' %}" class="cta">Logout</a></li>
+{% endblock %}
+
+{% block wrap_class %}medium{% endblock %}
+
+{% block extra_css %}
+<style>
+  /* ── Result reveal animation ── */
+  @keyframes resultReveal {
+    0%   { opacity: 0; transform: scale(0.88) translateY(20px); }
+    100% { opacity: 1; transform: scale(1) translateY(0); }
+  }
+  .result-reveal { animation: resultReveal .55s cubic-bezier(0.34,1.20,0.64,1) both; }
+
+  /* ── Risk Banner ── */
+  .risk-banner {
+    border-radius: var(--radius-lg);
+    padding: 2rem 2.25rem;
+    margin-bottom: 1.5rem;
+    display: flex;
+    align-items: center;
+    gap: 1.5rem;
+    position: relative;
+    overflow: hidden;
+    backdrop-filter: var(--blur); -webkit-backdrop-filter: var(--blur);
+    border: 1px solid;
+    box-shadow: var(--shadow-lg);
+  }
+  .risk-banner::before {
+    content: '';
+    position: absolute; top: 0; left: 0; right: 0;
+    height: 3px;
+  }
+  /* Shimmering ring behind icon */
+  .risk-banner::after {
+    content: '';
+    position: absolute;
+    width: 240px; height: 240px;
+    top: -80px; right: -60px;
+    border-radius: 50%;
+    opacity: .35;
+    pointer-events: none;
+  }
+
+  /* Disease detected */
+  .risk-danger { background: rgba(255,59,48,.08); border-color: rgba(255,59,48,.25); }
+  .risk-danger::before { background: linear-gradient(90deg,#ff3b30,#ff6b60); }
+  .risk-danger::after  { background: radial-gradient(circle,rgba(255,59,48,.3) 0%,transparent 70%); }
+  .risk-icon-danger {
+    width: 60px; height: 60px;
+    background: linear-gradient(145deg,rgba(255,59,48,.15),rgba(255,59,48,.28));
+    border: 1px solid rgba(255,59,48,.3);
+    border-radius: 16px;
+    display: flex; align-items: center; justify-content: center;
+    color: #ff3b30;
+    flex-shrink: 0;
+    box-shadow: 0 4px 18px rgba(255,59,48,.22);
+    animation: iconPulse 2.2s ease-in-out infinite;
+  }
+  @keyframes iconPulse {
+    0%,100% { box-shadow: 0 4px 18px rgba(255,59,48,.22); }
+    50%      { box-shadow: 0 4px 32px rgba(255,59,48,.45); }
+  }
+  .risk-icon-safe {
+    width: 60px; height: 60px;
+    background: linear-gradient(145deg,rgba(52,199,89,.15),rgba(52,199,89,.28));
+    border: 1px solid rgba(52,199,89,.3);
+    border-radius: 16px;
+    display: flex; align-items: center; justify-content: center;
+    color: #34c759;
+    flex-shrink: 0;
+    box-shadow: 0 4px 18px rgba(52,199,89,.22);
+  }
+  .risk-icon-danger svg, .risk-icon-safe svg { width: 28px; height: 28px; }
+
+  /* Safe */
+  .risk-safe { background: rgba(52,199,89,.08); border-color: rgba(52,199,89,.25); }
+  .risk-safe::before { background: linear-gradient(90deg,#34c759,#30d158); }
+  .risk-safe::after  { background: radial-gradient(circle,rgba(52,199,89,.3) 0%,transparent 70%); }
+
+  .risk-text { position: relative; z-index: 1; }
+  .risk-title { font-size: 1.35rem; font-weight: 700; letter-spacing: -.3px; margin-bottom: .3rem; }
+  .risk-danger .risk-title { color: #ff6b6b; }
+  .risk-safe   .risk-title { color: #34c759; }
+  .risk-sub    { font-size: .875rem; line-height: 1.65; }
+  .risk-danger .risk-sub { color: rgba(255,120,110,.75); }
+  .risk-safe   .risk-sub { color: rgba(52,199,89,.75); }
+
+  /* ── Accuracy ── */
+  .acc-row {
+    display: flex; align-items: center; gap: 1rem; margin-bottom: 1rem;
+  }
+  .acc-row:last-of-type { margin-bottom: 0; }
+  .acc-label { font-size: .8rem; font-weight: 600; color: var(--text-muted); min-width: 130px; flex-shrink: 0; }
+  .acc-track {
+    flex: 1; height: 11px;
+    background: rgba(255,255,255,.10);
+    border-radius: 99px; overflow: hidden;
+  }
+  .acc-fill {
+    height: 100%; border-radius: 99px;
+    background: linear-gradient(90deg,#0ea5e9,#0071e3);
+    width: 0;
+    transition: width 1.2s cubic-bezier(0.4,0,0.2,1);
+  }
+  .acc-fill.svm { background: linear-gradient(90deg,#a855f7,#7c3aed); }
+  .acc-value { font-size: .82rem; font-weight: 700; color: var(--text); min-width: 42px; text-align: right; flex-shrink: 0; }
+
+  .chart-wrap { margin-top: 1.1rem; text-align: center; }
+  .chart-wrap img { max-width: 100%; border-radius: var(--radius-sm); border: 1px solid rgba(255,255,255,.08); }
+
+  /* ── Remedies ── */
+  .remedies-header { margin-bottom: 1.25rem; }
+  .remedies-header h2 { font-size: 1.1rem; font-weight: 700; letter-spacing: -.2px; color: var(--text); margin-bottom: .25rem; }
+  .remedies-header p  { font-size: .85rem; color: var(--text-muted); }
+
+  .remedies-grid { display: grid; grid-template-columns: repeat(3,1fr); gap: 1.1rem; }
+  @media (max-width: 700px) { .remedies-grid { grid-template-columns: 1fr; } }
+
+  .remedy-card {
+    background: var(--glass);
+    backdrop-filter: var(--blur); -webkit-backdrop-filter: var(--blur);
+    border: 1px solid var(--glass-border);
+    border-radius: var(--radius);
+    box-shadow: var(--shadow-md);
+    padding: 1.35rem 1.25rem;
+    transition: transform var(--t-spring), box-shadow var(--t);
+  }
+  .remedy-card:hover { transform: translateY(-5px); box-shadow: var(--shadow-hover); }
+  .remedy-icon {
+    width: 38px; height: 38px;
+    background: linear-gradient(145deg,rgba(255,59,48,.1),rgba(255,59,48,.2));
+    border: 1px solid rgba(255,59,48,.18);
+    border-radius: 10px;
+    display: flex; align-items: center; justify-content: center;
+    color: #ff3b30; margin-bottom: .8rem;
+    box-shadow: 0 2px 8px rgba(255,59,48,.12);
+  }
+  .remedy-icon svg { width: 17px; height: 17px; }
+  .remedy-card h4 { font-size: .88rem; font-weight: 700; margin-bottom: .3rem; color: var(--text); }
+  .remedy-card p  { font-size: .8rem; color: var(--text-muted); line-height: 1.65; }
+
+  /* ── Safe tips ── */
+  .safe-tips { display: grid; grid-template-columns: repeat(3,1fr); gap: 1.1rem; }
+  @media (max-width: 700px) { .safe-tips { grid-template-columns: 1fr; } }
+  .safe-tip {
+    background: var(--glass);
+    backdrop-filter: var(--blur); -webkit-backdrop-filter: var(--blur);
+    border: 1px solid rgba(52,199,89,.2);
+    border-radius: var(--radius);
+    box-shadow: var(--shadow-md);
+    padding: 1.35rem 1.25rem;
+    transition: transform var(--t-spring), box-shadow var(--t);
+  }
+  .safe-tip:hover { transform: translateY(-4px); box-shadow: var(--shadow-hover); }
+  .safe-tip-icon {
+    width: 36px; height: 36px;
+    background: linear-gradient(145deg,rgba(52,199,89,.12),rgba(52,199,89,.22));
+    border-radius: 9px;
+    display: flex; align-items: center; justify-content: center;
+    color: #34c759; margin-bottom: .75rem;
+    box-shadow: 0 2px 8px rgba(52,199,89,.12);
+  }
+  .safe-tip-icon svg { width: 16px; height: 16px; }
+  .safe-tip h4 { font-size: .87rem; font-weight: 700; margin-bottom: .25rem; }
+  .safe-tip p  { font-size: .79rem; color: var(--text-muted); line-height: 1.6; }
+
+  /* ── Actions ── */
+  .result-actions { display: flex; gap: .75rem; flex-wrap: wrap; margin-top: 1.5rem; }
+</style>
+{% endblock %}
+
+{% block content %}
+
+<!-- Risk Result Banner -->
+{% if has_disease %}
+<div class="risk-banner risk-danger result-reveal">
+  <div class="risk-icon-danger">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z" fill="rgba(255,59,48,.15)"/>
+    </svg>
+  </div>
+  <div class="risk-text">
+    <div class="risk-title">Heart Disease Detected</div>
+    <p class="risk-sub">
+      The model predicts the presence of cardiovascular disease based on the entered parameters.
+      Please seek medical consultation promptly. See the recommended actions below.
+    </p>
+  </div>
+</div>
+{% else %}
+<div class="risk-banner risk-safe result-reveal">
+  <div class="risk-icon-safe">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+      <polyline points="20 6 9 17 4 12"/>
+    </svg>
+  </div>
+  <div class="risk-text">
+    <div class="risk-title">No Heart Disease Detected</div>
+    <p class="risk-sub">
+      The model predicts no cardiovascular disease based on the entered parameters.
+      Continue maintaining a heart-healthy lifestyle. See the tips below.
+    </p>
+  </div>
+</div>
+{% endif %}
+
+<!-- Accuracy Card -->
+<div class="card reveal" data-delay="100">
+  <div class="section-label">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="14" height="14"><path d="M18 20V10"/><path d="M12 20V4"/><path d="M6 20v-6"/></svg>
+    Model Accuracy Comparison
+  </div>
+
+  <div class="acc-row">
+    <span class="acc-label">Naïve Bayesian</span>
+    <div class="acc-track"><div class="acc-fill" data-width="{{ nb_accuracy }}"></div></div>
+    <span class="acc-value">{{ nb_accuracy }}%</span>
+  </div>
+  <div class="acc-row">
+    <span class="acc-label">SVM</span>
+    <div class="acc-track"><div class="acc-fill svm" data-width="{{ svm_accuracy }}"></div></div>
+    <span class="acc-value">{{ svm_accuracy }}%</span>
+  </div>
+
+  {% if chart %}
+  <div class="chart-wrap">
+    <img src="data:image/png;base64,{{ chart }}" alt="Model accuracy comparison chart"/>
+  </div>
+  {% endif %}
+</div>
+
+<!-- Disease Detected: Remedies -->
+{% if has_disease %}
+<div class="card reveal" data-delay="200" style="background:rgba(255,59,48,.04);border-color:rgba(255,59,48,.18);">
+  <div class="remedies-header">
+    <h2>Recommended Actions</h2>
+    <p>Based on the prediction, here are evidence-based steps you should consider.</p>
+  </div>
+  <div class="remedies-grid">
+
+    <div class="remedy-card reveal" data-delay="250">
+      <div class="remedy-icon">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg>
+      </div>
+      <h4>See a Cardiologist</h4>
+      <p>Schedule an immediate appointment with a cardiovascular specialist for a comprehensive evaluation and treatment plan.</p>
+    </div>
+
+    <div class="remedy-card reveal" data-delay="300">
+      <div class="remedy-icon">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+      </div>
+      <h4>Regular Exercise</h4>
+      <p>Aim for 150 minutes of moderate aerobic activity per week — walking, swimming, or cycling. Start slowly and increase gradually.</p>
+    </div>
+
+    <div class="remedy-card reveal" data-delay="350">
+      <div class="remedy-icon">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 2l1.6 1.6M12 2v4M21 2l-1.6 1.6M6 12H2M22 12h-4M6.3 6.3L3.5 3.5M17.7 6.3l2.8-2.8"/><circle cx="12" cy="14" r="6"/><path d="M12 11v3l2 1"/></svg>
+      </div>
+      <h4>Heart-Healthy Diet</h4>
+      <p>Follow a Mediterranean-style diet: lean proteins, fresh vegetables, fruits, whole grains. Reduce sodium, sugar, and saturated fats.</p>
+    </div>
+
+    <div class="remedy-card reveal" data-delay="300">
+      <div class="remedy-icon">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 8h1a4 4 0 0 1 0 8h-1"/><path d="M2 8h16v9a4 4 0 0 1-4 4H6a4 4 0 0 1-4-4V8z"/><line x1="6" y1="1" x2="6" y2="4"/><line x1="10" y1="1" x2="10" y2="4"/><line x1="14" y1="1" x2="14" y2="4"/></svg>
+      </div>
+      <h4>Manage Stress</h4>
+      <p>Practice mindfulness, meditation, or yoga daily. Chronic stress significantly strains the cardiovascular system and raises blood pressure.</p>
+    </div>
+
+    <div class="remedy-card reveal" data-delay="350">
+      <div class="remedy-icon">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="4.93" y1="4.93" x2="19.07" y2="19.07"/></svg>
+      </div>
+      <h4>Avoid Smoking &amp; Alcohol</h4>
+      <p>Quit smoking immediately — it's the single most impactful change. Limit alcohol intake. Both directly damage cardiovascular function.</p>
+    </div>
+
+    <div class="remedy-card reveal" data-delay="400">
+      <div class="remedy-icon">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="3" width="20" height="14" rx="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg>
+      </div>
+      <h4>Monitor &amp; Medicate</h4>
+      <p>Take prescribed medications consistently. Monitor blood pressure, cholesterol, and blood sugar regularly. Attend all follow-up appointments.</p>
+    </div>
+
+  </div>
+</div>
+
+<!-- No Disease: Maintenance Tips -->
+{% else %}
+<div class="card reveal" data-delay="200" style="background:rgba(52,199,89,.04);border-color:rgba(52,199,89,.18);">
+  <div class="remedies-header">
+    <h2>Keep Your Heart Healthy</h2>
+    <p>Great news! Here are tips to maintain your cardiovascular health.</p>
+  </div>
+  <div class="safe-tips">
+
+    <div class="safe-tip reveal" data-delay="250">
+      <div class="safe-tip-icon">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+      </div>
+      <h4>Stay Active</h4>
+      <p>Maintain 150 minutes of moderate exercise per week to keep your heart strong and efficient.</p>
+    </div>
+
+    <div class="safe-tip reveal" data-delay="300">
+      <div class="safe-tip-icon">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>
+      </div>
+      <h4>Regular Checkups</h4>
+      <p>Annual cardiovascular screenings help catch early warning signs before they become serious.</p>
+    </div>
+
+    <div class="safe-tip reveal" data-delay="350">
+      <div class="safe-tip-icon">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+      </div>
+      <h4>Eat Well &amp; Sleep</h4>
+      <p>A balanced diet and 7–9 hours of quality sleep are the two most powerful tools for long-term heart health.</p>
+    </div>
+
+  </div>
+</div>
+{% endif %}
+
+<!-- Disclaimer -->
+<div class="card reveal" data-delay="450">
+  <p style="font-size:.82rem;color:var(--text-muted);line-height:1.8;margin:0;">
+    <strong style="color:var(--text)">Disclaimer:</strong> This prediction is generated by a machine learning model
+    trained on the UCI Heart Disease dataset (303 records). It is intended for
+    <strong style="color:var(--text)">educational and research purposes only</strong> and does not constitute
+    medical advice. Consult a qualified healthcare professional for any clinical decisions.
+  </p>
+</div>
+
+<!-- Actions -->
+<div class="result-actions">
+  <a href="{% url 'Predict' %}" class="btn btn-primary">
+    <span class="btn-text">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="15" height="15"><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 1 0 .49-3.86"/></svg>
+      New Prediction
+    </span>
+    <span class="btn-spinner"><span class="spinner-ring"></span></span>
+  </a>
+  <a href="{% url 'ExportPDF' %}" class="btn btn-ghost">
+    <span class="btn-text">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="14" height="14"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="12" y1="18" x2="12" y2="12"/><line x1="9" y1="15" x2="15" y2="15"/></svg>
+      Download PDF
+    </span>
+    <span class="btn-spinner"><span class="spinner-ring"></span></span>
+  </a>
+  <a href="{% url 'History' %}" class="btn btn-ghost">History</a>
+  <a href="{% url 'index' %}" class="btn btn-ghost">Logout</a>
+</div>
+
+{% endblock %}
+
+{% block extra_js %}
+<script>
+// Animate accuracy bars on scroll
+const accObs = new IntersectionObserver(entries => {
+  entries.forEach(entry => {
+    if (!entry.isIntersecting) return;
+    entry.target.querySelectorAll('.acc-fill').forEach(fill => {
+      fill.style.width = fill.dataset.width + '%';
+    });
+    accObs.unobserve(entry.target);
+  });
+}, { threshold: 0.3 });
+document.querySelectorAll('.card').forEach(c => accObs.observe(c));
+</script>
+{% endblock %}
