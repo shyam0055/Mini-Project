@@ -174,10 +174,139 @@
 
   /* ── Actions ── */
   .result-actions { display: flex; gap: .75rem; flex-wrap: wrap; margin-top: 1.5rem; }
+
+  /* ══ Result Reveal Overlay ══ */
+  .ro-overlay {
+    position: fixed; inset: 0; z-index: 9995;
+    display: flex; flex-direction: column;
+    align-items: center; justify-content: center;
+    gap: 1.1rem; pointer-events: none;
+    animation: roFadeOut 0.65s 2.6s cubic-bezier(0.4,0,0.2,1) forwards;
+  }
+  @keyframes roFadeOut { 0% { opacity:1; } 100% { opacity:0; visibility:hidden; } }
+
+  /* ── DANGER ── */
+  .ro-danger { background: radial-gradient(ellipse at 50% 48%, #2e0707 0%, #160303 48%, #0b0101 100%); }
+  .ro-danger::before {
+    content: ''; position: absolute; inset: 0; z-index: 0;
+    background: repeating-linear-gradient(0deg, rgba(0,0,0,.13) 0px, rgba(0,0,0,.13) 1px, transparent 1px, transparent 4px);
+  }
+  .ro-ring {
+    position: absolute; border-radius: 50%;
+    top: 50%; left: 50%;
+    border: 2px solid rgba(255,59,48,.65);
+    animation: roRingExpand 1.7s ease-out infinite;
+  }
+  .ro-ring-1 { animation-delay: 0s; }
+  .ro-ring-2 { animation-delay: 0.57s; }
+  .ro-ring-3 { animation-delay: 1.14s; }
+  @keyframes roRingExpand {
+    0%   { width:110px; height:110px; opacity:.9; transform:translate(-50%,-50%); }
+    100% { width:700px; height:700px; opacity:0;  transform:translate(-50%,-50%); }
+  }
+  .ro-icon {
+    position: relative; z-index: 1;
+    width: 100px; height: 100px; border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    animation: roIconPop 0.55s 0.08s cubic-bezier(0.34,1.56,0.64,1) both;
+  }
+  @keyframes roIconPop {
+    from { transform: scale(0.15) rotate(-25deg); opacity:0; }
+    to   { transform: scale(1)    rotate(0deg);   opacity:1; }
+  }
+  .ro-icon-danger {
+    background: linear-gradient(145deg, #ff5a4e, #dc2020); color: #fff;
+    animation: roIconPop 0.55s 0.08s cubic-bezier(0.34,1.56,0.64,1) both,
+               roDangerPulse 0.85s 0.65s ease-in-out infinite;
+    box-shadow: 0 0 55px rgba(255,59,48,.5);
+  }
+  @keyframes roDangerPulse {
+    0%   { box-shadow: 0 0 0 0    rgba(255,59,48,.75); }
+    70%  { box-shadow: 0 0 0 38px rgba(255,59,48,0);   }
+    100% { box-shadow: 0 0 0 0    rgba(255,59,48,0);   }
+  }
+  .ro-title-danger { color:#ff7070; animation: roTextIn .45s .38s both, roDangerShake .14s .95s 3; }
+  @keyframes roDangerShake {
+    0%,100% { transform:translateX(0);  }
+    25%     { transform:translateX(-5px); }
+    75%     { transform:translateX(5px);  }
+  }
+  .ro-sub-danger { color:rgba(255,160,150,.6); animation: roTextIn .45s .52s both; }
+
+  /* ── SAFE ── */
+  .ro-safe { background: radial-gradient(ellipse at 50% 48%, #e0fded 0%, #f0fdf8 45%, #f8fff8 100%); }
+  .ro-burst {
+    position: absolute; border-radius: 50%;
+    top: 50%; left: 50%;
+    background: radial-gradient(circle, rgba(52,199,89,.28) 0%, transparent 70%);
+    animation: roBurstExpand ease-out forwards;
+  }
+  .ro-burst-1 { animation-duration:.9s;  animation-delay:.08s; }
+  .ro-burst-2 { animation-duration:1.2s; animation-delay:.32s; }
+  @keyframes roBurstExpand {
+    0%   { width:0;    height:0;    opacity:1; transform:translate(-50%,-50%); }
+    100% { width:700px; height:700px; opacity:0; transform:translate(-50%,-50%); }
+  }
+  .ro-icon-safe {
+    background: linear-gradient(145deg, #34c759, #16a34a); color:#fff;
+    box-shadow: 0 0 65px rgba(52,199,89,.55);
+  }
+  .ro-title-safe { color:#16a34a; animation: roTextIn .45s .38s both, roSafeBounce .5s .38s cubic-bezier(0.34,1.56,0.64,1); }
+  @keyframes roSafeBounce { 0% { transform:scale(0.6); } 100% { transform:scale(1); } }
+  .ro-sub-safe { color:rgba(22,163,74,.65); animation: roTextIn .45s .52s both; }
+
+  .ro-title {
+    position: relative; z-index: 1;
+    font-size: 2rem; font-weight: 800; letter-spacing: -.5px;
+  }
+  .ro-sub { position: relative; z-index: 1; font-size: .93rem; font-weight: 500; }
+  @keyframes roTextIn {
+    from { opacity:0; transform:translateY(18px); }
+    to   { opacity:1; transform:translateY(0);    }
+  }
+  .ro-confetti { position:absolute; inset:0; overflow:hidden; pointer-events:none; }
+  .ro-conf-piece {
+    position: absolute; border-radius: 2px;
+    animation: roConfFall linear forwards;
+  }
+  @keyframes roConfFall {
+    0%   { transform:translateY(-30px) rotate(0deg);   opacity:1; }
+    80%  { opacity:1; }
+    100% { transform:translateY(105vh) rotate(800deg); opacity:0; }
+  }
 </style>
 {% endblock %}
 
 {% block content %}
+
+<!-- ══ Result reveal overlay ══ -->
+{% if has_disease %}
+<div class="ro-overlay ro-danger" id="ro-overlay">
+  <div class="ro-ring ro-ring-1"></div>
+  <div class="ro-ring ro-ring-2"></div>
+  <div class="ro-ring ro-ring-3"></div>
+  <div class="ro-icon ro-icon-danger">
+    <svg viewBox="0 0 24 24" fill="currentColor" width="44" height="44">
+      <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/>
+    </svg>
+  </div>
+  <div class="ro-title ro-title-danger">Risk Detected</div>
+  <div class="ro-sub ro-sub-danger">Cardiovascular risk indicators found — see details below</div>
+</div>
+{% else %}
+<div class="ro-overlay ro-safe" id="ro-overlay">
+  <div class="ro-confetti" id="ro-confetti"></div>
+  <div class="ro-burst ro-burst-1"></div>
+  <div class="ro-burst ro-burst-2"></div>
+  <div class="ro-icon ro-icon-safe">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round" width="44" height="44">
+      <polyline points="20 6 9 17 4 12"/>
+    </svg>
+  </div>
+  <div class="ro-title ro-title-safe">All Clear!</div>
+  <div class="ro-sub ro-sub-safe">No cardiovascular risk detected — great news!</div>
+</div>
+{% endif %}
 
 <!-- Risk Result Banner -->
 {% if has_disease %}
@@ -368,6 +497,33 @@
 
 {% block extra_js %}
 <script>
+// ── Result reveal overlay ──
+(function () {
+  var overlay = document.getElementById('ro-overlay');
+  if (!overlay) return;
+  var confettiWrap = document.getElementById('ro-confetti');
+  if (confettiWrap) {
+    var colors = ['#f472b6','#a78bfa','#60a5fa','#34d399','#fbbf24','#fb923c','#f87171','#818cf8'];
+    for (var i = 0; i < 72; i++) {
+      var p = document.createElement('div');
+      p.className = 'ro-conf-piece';
+      var w = 5 + Math.random() * 9;
+      p.style.cssText =
+        'left:'    + (Math.random() * 100)            + '%;'  +
+        'top:'     + (-10 - Math.random() * 40)       + 'px;' +
+        'width:'   + w                                + 'px;' +
+        'height:'  + (w * (.4 + Math.random() * .7))  + 'px;' +
+        'background:' + colors[i % colors.length]    + ';'   +
+        'animation-duration:' + (1.3 + Math.random() * 1.5)  + 's;' +
+        'animation-delay:'    + (Math.random() * .9)          + 's;';
+      confettiWrap.appendChild(p);
+    }
+  }
+  overlay.addEventListener('animationend', function (e) {
+    if (e.animationName === 'roFadeOut') overlay.remove();
+  });
+})();
+
 // Animate accuracy bars on scroll
 const accObs = new IntersectionObserver(entries => {
   entries.forEach(entry => {

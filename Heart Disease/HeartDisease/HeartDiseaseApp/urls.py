@@ -10,6 +10,7 @@ urlpatterns = [
     path('Register.html',            views.Register,            name="Register"),
     path('Signup',                   views.Signup,              name="Signup"),
     path('UserLogin',                views.UserLogin,           name="UserLogin"),
+    path('dashboard',                views.UserScreen,          name="UserScreen"),
     path('Predict.html',             views.Predict,             name="Predict"),
     path('PredictHeartCondition',    views.PredictHeartCondition, name="PredictHeartCondition"),
     path('heart-viewer',             views.HeartViewer,         name="HeartViewer"),

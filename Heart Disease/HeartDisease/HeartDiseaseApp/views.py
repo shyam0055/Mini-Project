@@ -50,6 +50,8 @@ def _ensure_predictions_table():
 
 def index(request):
     if request.method == 'GET':
+        if request.session.get('username'):
+            return redirect('UserScreen')
         return render(request, 'index.html', {})
 
 
@@ -256,6 +258,13 @@ def UserLogin(request):
                 remaining = MAX_ATTEMPTS - fail_count
                 context = {'error': f'Invalid username or password. {remaining} attempt(s) remaining.'}
             return render(request, 'Login.html', context)
+
+
+def UserScreen(request):
+    username = request.session.get('username', '')
+    if not username:
+        return redirect('Login')
+    return render(request, 'UserScreen.html', {'username': username})
 
 
 # ── Prediction History ────────────────────────────────────────────────────────
