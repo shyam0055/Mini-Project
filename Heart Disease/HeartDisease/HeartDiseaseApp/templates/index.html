@@ -8,8 +8,7 @@
     margin-bottom: 1.75rem;
   }
   .hero-glass {
-    background: var(--glass);
-    backdrop-filter: var(--blur); -webkit-backdrop-filter: var(--blur);
+    background: var(--surface);
     border: 1px solid var(--glass-border);
     border-radius: var(--radius-lg);
     box-shadow: var(--shadow-lg);
@@ -21,11 +20,11 @@
   .hero-glass::before {
     content: '';
     position: absolute; top: 0; left: 0; right: 0; height: 3px;
-    background: linear-gradient(90deg, #0ea5e9, #0071e3, #a855f7);
+    background: linear-gradient(90deg, #0f766e, #0d9488, #14b8a6);
   }
   .hero-badge {
     display: inline-flex; align-items: center; gap: .45rem;
-    background: rgba(0,113,227,.08); border: 1px solid rgba(0,113,227,.18);
+    background: rgba(13,148,136,.08); border: 1px solid rgba(13,148,136,.18);
     color: var(--primary); font-size: .72rem; font-weight: 700;
     padding: .3rem .9rem; border-radius: 99px;
     text-transform: uppercase; letter-spacing: .8px; margin-bottom: 1.1rem;
@@ -39,21 +38,21 @@
   .nav-cards { display: grid; grid-template-columns: repeat(3,1fr); gap: 1.15rem; margin-bottom: 1.75rem; }
   @media (max-width: 700px) { .nav-cards { grid-template-columns: 1fr; } }
   .nav-card {
-    background: var(--glass); backdrop-filter: var(--blur); -webkit-backdrop-filter: var(--blur);
+    background: var(--surface);
     border: 1px solid var(--glass-border); border-radius: var(--radius);
     padding: 1.6rem 1.4rem 1.45rem; text-decoration: none; color: var(--text);
     display: flex; flex-direction: column; align-items: flex-start; gap: .55rem;
     box-shadow: var(--shadow-md);
     transition: box-shadow var(--t-spring), transform var(--t-spring), border-color var(--t);
   }
-  .nav-card:hover { box-shadow: var(--shadow-hover); transform: translateY(-6px) scale(1.015); border-color: rgba(77,168,255,.30); }
+  .nav-card:hover { box-shadow: var(--shadow-hover); transform: translateY(-6px) scale(1.015); border-color: rgba(13,148,136,.30); }
   .nav-card:active { transform: translateY(-1px) scale(1); }
   .nav-card-icon {
     width: 44px; height: 44px;
-    background: linear-gradient(145deg,rgba(0,113,227,.10),rgba(0,113,227,.18));
+    background: linear-gradient(145deg,rgba(13,148,136,.10),rgba(13,148,136,.18));
     border-radius: 11px; display: flex; align-items: center; justify-content: center;
     color: var(--primary);
-    box-shadow: 0 2px 8px rgba(0,113,227,.15), 0 1px 0 rgba(255,255,255,.8) inset;
+    box-shadow: 0 2px 8px rgba(13,148,136,.15);
   }
   .nav-card-icon svg { width: 20px; height: 20px; }
   .nav-card h3 { font-size: .93rem; font-weight: 700; }
@@ -68,7 +67,7 @@
   .stats { display: grid; grid-template-columns: repeat(4,1fr); gap: 1.1rem; margin-bottom: 1.75rem; }
   @media (max-width: 700px) { .stats { grid-template-columns: repeat(2,1fr); } }
   .stat {
-    background: var(--glass); backdrop-filter: var(--blur); -webkit-backdrop-filter: var(--blur);
+    background: var(--surface);
     border: 1px solid var(--glass-border); border-radius: var(--radius);
     box-shadow: var(--shadow-md); padding: 1.2rem 1rem; text-align: center;
     transition: transform var(--t-spring), box-shadow var(--t);
@@ -79,17 +78,17 @@
 
   /* About */
   .about-glass {
-    background: var(--glass); backdrop-filter: var(--blur); -webkit-backdrop-filter: var(--blur);
+    background: var(--surface);
     border: 1px solid var(--glass-border); border-radius: var(--radius);
     box-shadow: var(--shadow-md); padding: 1.75rem 1.9rem;
     transition: transform var(--t), box-shadow var(--t);
   }
   .about-glass:hover { transform: translateY(-3px); box-shadow: var(--shadow-hover); }
-  .about-glass h2 { font-size: .93rem; font-weight: 700; color: var(--text); margin-bottom: .9rem; padding-bottom: .8rem; border-bottom: 1px solid rgba(255,255,255,.08); display: flex; align-items: center; gap: .5rem; }
+  .about-glass h2 { font-size: .93rem; font-weight: 700; color: var(--text); margin-bottom: .9rem; padding-bottom: .8rem; border-bottom: 1px solid var(--border); display: flex; align-items: center; gap: .5rem; }
   .about-glass h2 svg { width: 16px; height: 16px; color: var(--primary); }
   .about-glass p { font-size: .875rem; color: var(--text-muted); line-height: 1.82; margin-bottom: .75rem; }
   .about-glass p:last-child { margin-bottom: 0; }
-  .disclaimer-badge { margin-top: 1.1rem; padding: .7rem 1.1rem; background: rgba(255,180,30,.10); border: 1px solid rgba(255,180,30,.25); border-radius: var(--radius-sm); font-size: .79rem; color: rgba(255,200,80,.90); display: flex; align-items: flex-start; gap: .55rem; }
+  .disclaimer-badge { margin-top: 1.1rem; padding: .7rem 1.1rem; background: rgba(217,119,6,.08); border: 1px solid rgba(217,119,6,.20); border-radius: var(--radius-sm); font-size: .79rem; color: var(--warning); display: flex; align-items: flex-start; gap: .55rem; }
   .disclaimer-badge svg { width: 14px; height: 14px; flex-shrink: 0; margin-top: .1rem; }
 </style>
 {% endblock %}

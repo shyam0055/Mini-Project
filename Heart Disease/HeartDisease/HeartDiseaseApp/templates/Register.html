@@ -30,13 +30,12 @@
   }
   .reg-icon-wrap {
     width: 64px; height: 64px;
-    background: linear-gradient(145deg, rgba(0,113,227,.12), rgba(0,113,227,.22));
-    backdrop-filter: blur(8px);
-    border: 1px solid rgba(0,113,227,.2);
+    background: linear-gradient(145deg, rgba(13,148,136,.12), rgba(13,148,136,.22));
+    border: 1px solid rgba(13,148,136,.2);
     border-radius: 18px;
     display: flex; align-items: center; justify-content: center;
     margin: 0 auto 1rem;
-    box-shadow: 0 4px 20px rgba(77,168,255,.22);
+    box-shadow: 0 4px 20px rgba(13,148,136,.22);
     animation: iconBounce .6s cubic-bezier(0.34,1.56,0.64,1) both;
   }
   @keyframes iconBounce { from { transform: scale(0.5); opacity: 0; } to { transform: scale(1); opacity: 1; } }
@@ -52,7 +51,7 @@
   .pdot {
     width: 8px; height: 8px;
     border-radius: 50%;
-    background: rgba(255,255,255,.15);
+    background: var(--border);
     transition: all .3s ease;
   }
   .pdot.active { background: var(--primary); width: 22px; border-radius: 4px; }
@@ -60,9 +59,7 @@
 
   /* Glass card */
   .reg-card {
-    background: var(--glass-heavy);
-    backdrop-filter: var(--blur-heavy);
-    -webkit-backdrop-filter: var(--blur-heavy);
+    background: var(--surface);
     border: 1px solid var(--glass-border);
     border-radius: var(--radius-lg);
     box-shadow: var(--shadow-lg);
@@ -86,21 +83,19 @@
   .float-field input {
     width: 100%;
     padding: 1.1rem 1rem .5rem;
-    background: rgba(255,255,255,.07);
-    backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px);
-    border: 1.5px solid rgba(255,255,255,.12);
+    background: #fff;
+    border: 1.5px solid var(--border);
     border-radius: var(--radius);
     font-size: .9rem;
     color: var(--text);
     outline: none;
-    transition: border-color var(--t), box-shadow var(--t), background var(--t);
+    transition: border-color var(--t), box-shadow var(--t);
     font-family: inherit;
-    box-shadow: 0 2px 10px rgba(0,0,0,.25) inset;
+    box-shadow: var(--shadow-sm);
   }
   .float-field input:focus {
-    background: rgba(255,255,255,.10);
     border-color: var(--primary);
-    box-shadow: 0 0 0 3px rgba(77,168,255,.18);
+    box-shadow: 0 0 0 3px rgba(13,148,136,.15), var(--shadow-sm);
   }
   .float-field label {
     position: absolute;
@@ -131,7 +126,7 @@
     flex-wrap: wrap;
     gap: 1rem;
     padding-top: .5rem;
-    border-top: 1px solid rgba(255,255,255,.08);
+    border-top: 1px solid var(--border);
   }
   .reg-footer-note { font-size: .82rem; color: var(--text-muted); }
   .reg-footer-note a { color: var(--primary); text-decoration: none; font-weight: 600; }

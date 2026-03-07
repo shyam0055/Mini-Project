@@ -11,8 +11,7 @@
 {% block extra_css %}
 <style>
   .welcome-banner {
-    background: var(--glass);
-    backdrop-filter: var(--blur); -webkit-backdrop-filter: var(--blur);
+    background: var(--surface);
     border: 1px solid var(--glass-border);
     border-radius: var(--radius-lg);
     box-shadow: var(--shadow-lg);
@@ -26,7 +25,7 @@
   .welcome-banner::before {
     content: '';
     position: absolute; top: 0; left: 0; right: 0; height: 3px;
-    background: linear-gradient(90deg, #0ea5e9, #0071e3, #a855f7);
+    background: linear-gradient(90deg, #0f766e, #0d9488, #14b8a6);
   }
   /* Decorative orb inside banner */
   .welcome-banner::after {
@@ -34,7 +33,7 @@
     position: absolute;
     width: 220px; height: 220px;
     top: -60px; right: -50px;
-    background: radial-gradient(circle, rgba(0,113,227,.12) 0%, transparent 70%);
+    background: radial-gradient(circle, rgba(13,148,136,.12) 0%, transparent 70%);
     border-radius: 50%;
     pointer-events: none;
   }
@@ -50,8 +49,7 @@
   .feature-grid { display: grid; grid-template-columns: repeat(3,1fr); gap: 1.1rem; margin-bottom: 1.5rem; }
   @media (max-width: 700px) { .feature-grid { grid-template-columns: 1fr; } }
   .feature-card {
-    background: var(--glass);
-    backdrop-filter: var(--blur); -webkit-backdrop-filter: var(--blur);
+    background: var(--surface);
     border: 1px solid var(--glass-border);
     border-radius: var(--radius);
     box-shadow: var(--shadow-md);
@@ -64,9 +62,9 @@
     border-radius: 10px;
     display: flex; align-items: center; justify-content: center;
     margin-bottom: .9rem;
-    box-shadow: 0 2px 8px rgba(0,0,0,.25), 0 1px 0 rgba(255,255,255,.10) inset;
+    box-shadow: 0 2px 8px rgba(13,148,136,.12);
   }
-  .feature-icon.blue   { background: linear-gradient(145deg,rgba(0,113,227,.12),rgba(0,113,227,.22)); color:var(--primary); }
+  .feature-icon.blue   { background: linear-gradient(145deg,rgba(13,148,136,.12),rgba(13,148,136,.22)); color:var(--primary); }
   .feature-icon.green  { background: linear-gradient(145deg,rgba(52,199,89,.12),rgba(52,199,89,.22)); color:var(--success); }
   .feature-icon.purple { background: linear-gradient(145deg,rgba(168,85,247,.12),rgba(168,85,247,.22)); color:#a855f7; }
   .feature-icon svg { width: 18px; height: 18px; }

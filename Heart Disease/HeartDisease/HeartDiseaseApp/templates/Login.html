@@ -118,15 +118,13 @@
     align-items: center;
     justify-content: center;
     padding: 2.5rem 2rem;
-    background: rgba(12,14,24,0.65);
-    backdrop-filter: blur(28px);
-    -webkit-backdrop-filter: blur(28px);
+    background: #fff;
   }
   .login-form-box {
     width: 100%; max-width: 380px;
   }
   .form-header { margin-bottom: 2rem; }
-  .form-header h1 { font-size: 1.75rem; font-weight: 700; letter-spacing: -.4px; color: var(--text); margin-bottom: .35rem; }
+  .form-header h1 { font-size: 1.75rem; font-weight: 700; letter-spacing: -.4px; color: #0f2622; margin-bottom: .35rem; }
   .form-header p  { font-size: .87rem; color: var(--text-muted); }
 
   .float-field {
@@ -136,28 +134,26 @@
   .float-field input {
     width: 100%;
     padding: 1.1rem 1rem .5rem;
-    background: rgba(255,255,255,.07);
-    backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px);
-    border: 1.5px solid rgba(255,255,255,.12);
+    background: #fff;
+    border: 1.5px solid var(--border);
     border-radius: var(--radius);
     font-size: .95rem;
     color: var(--text);
     outline: none;
-    transition: border-color var(--t), box-shadow var(--t), background var(--t);
+    transition: border-color var(--t), box-shadow var(--t);
     font-family: inherit;
-    box-shadow: 0 2px 10px rgba(0,0,0,.25) inset;
+    box-shadow: var(--shadow-sm);
   }
   .float-field input:focus {
-    background: rgba(255,255,255,.10);
     border-color: var(--primary);
-    box-shadow: 0 0 0 3px rgba(77,168,255,.18);
+    box-shadow: 0 0 0 3px rgba(13,148,136,.15), var(--shadow-sm);
   }
   .float-field label {
     position: absolute;
     top: 50%; left: 1rem;
     transform: translateY(-50%);
     font-size: .9rem;
-    color: var(--text-light);
+    color: var(--text-muted);
     pointer-events: none;
     transition: top .2s ease, font-size .2s ease, color .2s ease, transform .2s ease;
     font-weight: 500;
@@ -179,11 +175,11 @@
   .divider-line {
     display: flex; align-items: center; gap: .75rem;
     margin: 1.5rem 0;
-    color: var(--text-light); font-size: .78rem;
+    color: var(--text-muted); font-size: .78rem;
   }
   .divider-line::before, .divider-line::after {
     content: ''; flex: 1; height: 1px;
-    background: rgba(255,255,255,.08);
+    background: var(--border);
   }
 </style>
 {% endblock %}
